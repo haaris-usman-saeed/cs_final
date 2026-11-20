@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FireRisk Open · Research Preview</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#ecf3ee;background:#091714}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1150px;margin:auto;padding:30px 25px}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2c423b;padding-bottom:22px}
+.logo{font-weight:750;font-size:22px;letter-spacing:-1px}.logo b{color:#9ad6aa}.tag{color:#c5cfc7;border:1px solid #3d5e50;padding:7px 12px;border-radius:50px;font-size:12px}
+h1{font-weight:650;font-size:clamp(33px,5vw,57px);letter-spacing:-2.5px;line-height:1.09;max-width:790px;margin:44px 0 14px}
+.lede{color:#c2d0c7;max-width:690px;line-height:1.7}.warning{border-left:4px solid #d3a96b;background:#2d291d;padding:13px 16px;margin:26px 0;color:#f3e4ca;font-size:14px}
+.layout{display:grid;grid-template-columns:minmax(250px,1fr) 290px;gap:20px;margin-top:22px}.panel{background:#13251e;border:1px solid #315043;border-radius:15px;padding:20px}
+.panel h2{font-size:15px;font-weight:600;margin:0 0 13px}.muted{color:#a8bdb0;font-size:13px;line-height:1.65}
+#map{width:100%;height:425px;background:repeating-linear-gradient(90deg,transparent 0 35px,#20392d 36px),repeating-linear-gradient(0deg,transparent 0 35px,#20392d 36px),#102018;border-radius:8px;position:relative;overflow:hidden}
+.dot{position:absolute;border:1px solid #e0e7df80;border-radius:2px;transform:translate(-50%,-50%);cursor:pointer}
+.dot:hover{outline:2px solid white;z-index:1}.legend{display:flex;gap:7px;align-items:center;font-size:11px;color:#c4d0c8;margin-top:14px}.swatch{width:19px;height:11px;border-radius:3px}
+.stat{font-size:29px;font-weight:650;margin:2px 0}.sm{font-size:12px;color:#a9bcb1}button{border:1px solid #6e917a;background:transparent;border-radius:9px;padding:9px 12px;color:inherit;cursor:pointer}
+#details{border-top:1px solid #30453a;margin-top:20px;padding-top:16px;min-height:80px}
+footer{border-top:1px solid #345042;margin-top:32px;padding-top:16px;color:#9ab0a1;font-size:12px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+</style></head><body><div class="wrap"><header><div class="logo">FireRisk <b>Open</b></div><span class="tag">v0.1 · research prototype</span></header>
+<h1>Open satellite fire-detection forecasting.</h1><p class="lede">A reproducible dataset and experimental model for predicting whether a geographic cell will have a newly observed satellite fire detection on the following UTC day.</p>
+<div class="warning"><strong>Not for emergency decisions.</strong> This predicts satellite detections, not actual ignition probabilities, fire spread, evacuation needs, or guaranteed absence of fire. Predictions are unavailable until trained and validated with real observations.</div>
+<div class="layout"><div class="panel"><h2>Prediction grid</h2><div id="map"><span style="position:absolute;left:16px;top:16px;color:#8eaa99;font-size:12px">Map initializes after the first real prediction batch</span></div>
+<div class="legend"><span>Relative model probability:</span><span class="swatch" style="background:#62b98c"></span> Lower <span class="swatch" style="background:#d3a55c"></span> Mid <span class="swatch" style="background:#d86d4a"></span> Higher</div></div>
+<div class="panel"><h2>Model status</h2><div class="stat" id="count">—</div><div class="sm">Grid cells with predictions</div><div style="height:20px"></div><div class="sm">Target date</div><div id="target" style="font-weight:700;margin:8px 0 21px">Not available</div><div class="sm">Source processing</div><p id="source" style="font-size:13px;line-height:1.6">Awaiting genuine historical training data and live NASA feed.</p><div id="details" class="muted">Select a cell to inspect its estimate once predictions are available.</div></div></div>
+<footer>NASA FIRMS · Open-Meteo/ECMWF ERA5 · Open research, source attribution required. Data quality and forecast validation are documented in the repository.</footer></div>
+<script>
+const map=document.getElementById('map'),count=document.getElementById('count');
+function color(p){return p<.03?'#62b98c':p<.15?'#d3a55c':'#d86d4a'}
+(async()=>{try{let r=await fetch('/api/predictions');if(!r.ok)throw new Error('No verified predictions published');let d=await r.json();if(!d.predictions?.length)throw new Error('Empty predictions');let xs=d.predictions.map(x=>x.longitude),ys=d.predictions.map(x=>x.latitude),minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+map.innerHTML='';for(let row of d.predictions){let dot=document.createElement('div');dot.className='dot';dot.style.left=(6+88*(row.longitude-minx)/(maxx-minx||1))+'%';dot.style.top=(94-88*(row.latitude-miny)/(maxy-miny||1))+'%';dot.style.width=dot.style.height='13px';dot.style.background=color(row.probability_nextday_detection);dot.title=row.cell_id+' '+(100*row.probability_nextday_detection).toFixed(2)+'%';dot.onclick=()=>{document.getElementById('details').textContent=`${row.cell_id} (${row.latitude.toFixed(2)}, ${row.longitude.toFixed(2)}): ${(row.probability_nextday_detection*100).toFixed(2)}% estimated probability of a qualifying satellite detection, not fire ignition probability.`};map.append(dot)}
+count.textContent=d.predictions.length.toLocaleString();document.getElementById('target').textContent=d.target_date||'Unknown';document.getElementById('source').textContent='Experimental model. No guarantee of operational validity. Last computed: '+(d.generated_at_utc||'unknown');}catch(e){count.textContent='0';document.getElementById('source').textContent=e.message+'. Use the ingestion and training pipeline first.'}})();
+</script></body></html>
