@@ -13,13 +13,13 @@ Build a publicly reproducible **satellite-detection forecasting dataset**, rathe
 - [x] Implement same-architecture weather-only ablation and temporally held-out test.
 - [x] Implement small read-only web dashboard and API with no-prediction state.
 - [x] Pass local synthetic unit/integration tests.
-- [ ] Successfully download and inspect genuinely sourced observations from both APIs.
-- [ ] Confirm time, source, products and true FIRMS acquisition completeness (including overpass mask).
-- [ ] Acquire 3+ fire seasons and enough independent positive events.
-- [ ] Spatial leave-region-out test, bootstrapped uncertainty, calibration assessment.
-- [ ] Assess standard-processing vs NRT and retrospective ERA5 vs forecast-era data shift.
-- [ ] Add an appropriate land mask, grid-area weighting and non-vegetation/industrial-source filtering.
-- [ ] Confirm data-release terms and publish verified data card + model card.
+- [x] Download and inspect real observations: FIRMS NOAA-20 yearly archive (keyless) + Open-Meteo ERA5, SHA-256 manifested (2026-11-20). MAP_KEY API path still unexercised.
+- [~] Acquisition completeness: national per-day status (6 missing, 4 suspect days) + ERA5 overpass-cloud proxy. A true VIIRS L2 cloud/observation mask is still missing.
+- [x] 7 fire seasons (2019–2025), 4,042 positives; 982/195/427 distinct events in train/validation/test.
+- [x] Leave-one-block-out (4 blocks), week- and cell-clustered bootstrap CIs, reliability tables (release/RESULTS.md).
+- [~] ERA5 vs archived operational forecasts and typed vs type-less fire labels quantified (release/vintage_check.json). SP vs NRT detections not measured.
+- [~] Natural Earth land/lake fraction, exact cell areas recorded, type==0 filter + static-source mask for NRT. Area weighting not applied (cell areas vary ±3% in the pilot).
+- [x] Data card, model card, CC BY 4.0 dataset with upstream attribution (docs/).
 - [ ] Schedule a production update job and deploy a production read-only endpoint.
 
 ## Minimum requirements before public operational claims
@@ -31,3 +31,11 @@ Build a publicly reproducible **satellite-detection forecasting dataset**, rathe
 5. Limit the public claim to what the label measures and clearly document drift/failures.
 
 **Never confuse a research probability for an official safety alert.**
+
+## Outcome of the v0.2 pilot (2026-11-20)
+
+The detection benchmark is real and reproducible. The forecast skill is weak. On the one-time test the frozen
+champion has AP 0.085, climatology 0.076 and the base rate is 0.036. The gain over climatology is not robust to
+time-clustered uncertainty, and fire-history features add no measurable skill over weather-only. **Gate 3
+("outperform climatology with reasonable uncertainty") is NOT met.** No operational claims. Live publishing stays
+experimental, and it is blocked until 30 days of NRT history exist.

@@ -1,3 +1,8 @@
+# Release notes
+
+See `CHANGELOG.md` (0.2.0) for changes and audit fixes, `release/RESULTS.md` for measured results,
+and `docs/MODEL_CARD.md` / `docs/DATA_CARD.md`.
+
 # FireRisk Open 0.1.0 — initial engineering release
 
 **Built:** November 2026. **Status:** Offline software prototype with synthetic integration tests; no actual NASA or Open-Meteo observations have been retrieved inside the current runtime.

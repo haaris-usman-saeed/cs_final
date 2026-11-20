@@ -1,0 +1,48 @@
+column,dtype,description
+cell_id,object,"Row/column id within the study bbox (r{row}_c{col}, row 0 = southernmost)."
+cell_global_id,object,Bbox-independent id g{step}_y{floor((lat+90)/step)}_x{floor((lon+180)/step)}.
+issue_date,object,UTC calendar date d; the forecast is issued at d 00:00 UTC.
+target_date,object,UTC date d+1 whose detections define the label.
+issue_time_utc,object,ISO timestamp of issue (d 00:00Z).
+target_start_utc,object,"Start of label window (d+1 00:00Z), inclusive."
+target_end_utc,object,"End of label window (d+2 00:00Z), exclusive."
+latitude,float64,"Cell centre latitude (deg, WGS84)."
+longitude,float64,Cell centre longitude (deg).
+land_fraction,float64,Natural Earth 10 m land-minus-lakes fraction of the cell (area weighted lattice).
+cell_area_km2,float64,Spherical area of the cell; cells are NOT equal area.
+doy_sin,float64,sin(2π·day-of-year(issue)/365.25).
+doy_cos,float64,cos(2π·day-of-year(issue)/365.25).
+temperature_lag2,float64,"ERA5 2 m air temperature, UTC-day mean of day d-2 (°C)."
+tmax_lag2,float64,"ERA5 2 m temperature, hourly max on d-2 (°C)."
+humidity_lag2,float64,"ERA5 2 m relative humidity, mean on d-2 (%)."
+rhmin_lag2,float64,"ERA5 2 m relative humidity, hourly min on d-2 (%)."
+wind_lag2,float64,"ERA5 10 m wind speed, mean on d-2 (m/s)."
+windmax_lag2,float64,"10 m wind, hourly max on d-2 (m/s)."
+vpd_lag2,float64,"Vapour-pressure deficit from hourly T and RH (Tetens), mean on d-2 (kPa)."
+rain_3d_lag2,float64,ERA5 precipitation total over d-4..d-2 (mm).
+rain_7d_lag2,float64,Precipitation total over d-8..d-2 (mm).
+rain_30d_lag2,float64,Precipitation total over d-31..d-2 (mm).
+dry_days_lag2,float64,Consecutive days with <1 mm precipitation ending d-2 (capped at 30).
+neighbor_fire_3d,float64,"Qualifying detections in the 8 neighbouring cells known at issue, last 3 issue days."
+neighbor_fire_7d,float64,"Same, last 7 issue days."
+neighbor_frp_3d,float64,"Sum of FRP (MW) of those detections, last 3 issue days."
+ring2_fire_7d,float64,"Detections in the 16 cells two steps away, known at issue, last 7 issue days."
+own_fire_30d,float64,Detections in the cell itself known 8..30 issue days before (0..7 is 0 by eligibility).
+region_fire_3d,float64,"Detections across the whole study bbox known at issue, last 3 issue days."
+eligible_new_activity,bool,True if no qualifying detection in the cell was known at issue during the previous 7 issue days.
+eligibility_uncertain,bool,True if the eligibility window or issue day includes a FIRMS archive day marked missing/suspect.
+label_status,object,"""ok"" or the reason the label is withheld (never converted into a negative)."
+target_day_firms_status,object,Archive acquisition status of the target day: ok / suspect / missing (national counts).
+target_cloud_overpass_pct,float64,ERA5 total cloud cover at the two NOAA-20 overpass hours of the target day (%). QC ONLY.
+target_cloud_obscured_proxy,bool,"target_cloud_overpass_pct >= 80: negative labels are weak. QC ONLY, never a feature."
+detection_on_issue_day,bool,Any qualifying detection on day d (0-24 h after issue; unknown at issue). QC ONLY.
+fire_obs_cutoff_utc,object,Latest acquisition time whose detections are used (issue - 3 h latency assumption).
+weather_valid_through_utc,object,End of the most recent weather day used (end of d-2).
+target_nextday_detection,float64,"PRIMARY LABEL: 1 if ≥1 qualifying NOAA-20 VIIRS detection in the cell on d+1, else 0; NaN if withheld."
+target_nextday_count,float64,Secondary continuous outcome: number of qualifying detections on d+1.
+target_nextday_frp,float64,Sum of FRP (MW) of qualifying detections on d+1.
+in_primary_analysis,bool,"Row used for modelling: land cell, eligible, eligibility certain, label ok."
+firms_product,object,Fire data product/vintage.
+weather_product,object,Weather data product/vintage.
+dataset_version,object,FireRisk Open dataset version.
+raw_manifest_sha256,object,SHA-256 of manifest.json listing all raw files.

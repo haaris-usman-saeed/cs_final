@@ -412,6 +412,7 @@ def regression_metrics(y, p) -> dict:
 
 def run_regression_development(df: pd.DataFrame, outdir: Path, log=print) -> pd.DataFrame:
     """Secondary continuous target: log1p(next-day qualifying detection count) on the same rows/splits."""
+    outdir = Path(outdir)
     df = df[df['target_nextday_count'].notna()].copy()
     df['split'] = assign_splits(df)
     tr, va = df[df.split == 'train'], df[df.split == 'validation']

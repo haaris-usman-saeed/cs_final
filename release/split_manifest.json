@@ -1,0 +1,138 @@
+{
+  "split_definition": {
+    "train_target_end": "2022-12-31",
+    "validation_targets": [
+      "2023-01-01",
+      "2023-12-31"
+    ],
+    "test_targets": [
+      "2024-01-01",
+      "2025-12-31"
+    ],
+    "embargo_days": 32
+  },
+  "pairwise_key_overlap": {
+    "train&validation": 0,
+    "train&test": 0,
+    "train&embargo": 0,
+    "train&unused": 0,
+    "validation&test": 0,
+    "validation&embargo": 0,
+    "validation&unused": 0,
+    "test&embargo": 0,
+    "test&unused": 0,
+    "embargo&unused": 0
+  },
+  "chronology": {
+    "max_train_target": "2022-12-31",
+    "min_validation_target": "2023-02-02",
+    "max_validation_target": "2023-12-31",
+    "min_test_target": "2024-02-02"
+  },
+  "sha256": {
+    "train": "a4f724a27a61ef0fe6dad325c18ba634bd49c694a1ab9334a4f1a8832b40ebba",
+    "validation": "4a266da8344a4778fb24a3b7f9fc131c5fdae590d87acdd38528ddda512833dd",
+    "test": "3bf8d4ea328e811da49008b108d828daddefb32c7c2d8b3cb1b5fffd0a1ca1f0",
+    "embargo": "32f77d04ec0f60cea5d8658a5a0f98fa6a6a9deb4bb4e64826443ffd23d20aa3",
+    "unused": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "summary": {
+    "embargo": {
+      "rows": 3390,
+      "labelled_rows": 3390,
+      "positives": 125,
+      "negatives": 3265,
+      "prevalence": 0.03687315634218289,
+      "negatives_per_positive": 26.12,
+      "distinct_positive_events": 37,
+      "cells": 64,
+      "target_date_min": "2023-01-01",
+      "target_date_max": "2024-02-01",
+      "target_years": [
+        2023,
+        2024
+      ],
+      "lat_range": [
+        38.75,
+        42.25
+      ],
+      "lon_range": [
+        -123.25,
+        -119.75
+      ]
+    },
+    "test": {
+      "rows": 31039,
+      "labelled_rows": 31039,
+      "positives": 1119,
+      "negatives": 29920,
+      "prevalence": 0.036051419182319015,
+      "negatives_per_positive": 26.738159070598748,
+      "distinct_positive_events": 427,
+      "cells": 64,
+      "target_date_min": "2024-02-02",
+      "target_date_max": "2025-12-31",
+      "target_years": [
+        2024,
+        2025
+      ],
+      "lat_range": [
+        38.75,
+        42.25
+      ],
+      "lon_range": [
+        -123.25,
+        -119.75
+      ]
+    },
+    "train": {
+      "rows": 66584,
+      "labelled_rows": 66584,
+      "positives": 2312,
+      "negatives": 64272,
+      "prevalence": 0.034723056590171816,
+      "negatives_per_positive": 27.79930795847751,
+      "distinct_positive_events": 982,
+      "cells": 64,
+      "target_date_min": "2019-01-02",
+      "target_date_max": "2022-12-31",
+      "target_years": [
+        2019,
+        2020,
+        2021,
+        2022
+      ],
+      "lat_range": [
+        38.75,
+        42.25
+      ],
+      "lon_range": [
+        -123.25,
+        -119.75
+      ]
+    },
+    "validation": {
+      "rows": 13824,
+      "labelled_rows": 13824,
+      "positives": 486,
+      "negatives": 13338,
+      "prevalence": 0.03515625,
+      "negatives_per_positive": 27.444444444444443,
+      "distinct_positive_events": 195,
+      "cells": 64,
+      "target_date_min": "2023-02-02",
+      "target_date_max": "2023-12-31",
+      "target_years": [
+        2023
+      ],
+      "lat_range": [
+        38.75,
+        42.25
+      ],
+      "lon_range": [
+        -123.25,
+        -119.75
+      ]
+    }
+  }
+}

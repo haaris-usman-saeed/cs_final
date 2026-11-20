@@ -1,0 +1,174 @@
+{
+  "status": "experimental_research_model",
+  "frozen_at_utc": "2026-11-20T04:25:45.512726+00:00",
+  "selection_rule": "highest validation average precision over all candidates and feature sets (pre-registered in docs/PREREGISTRATION.md)",
+  "champion": {
+    "key": "extra_trees|weather_plus_fire",
+    "model": "extra_trees",
+    "feature_set": "weather_plus_fire",
+    "params": {
+      "max_depth": null,
+      "min_samples_leaf": 20
+    },
+    "features": [
+      "latitude",
+      "longitude",
+      "doy_sin",
+      "doy_cos",
+      "temperature_lag2",
+      "tmax_lag2",
+      "humidity_lag2",
+      "rhmin_lag2",
+      "wind_lag2",
+      "windmax_lag2",
+      "vpd_lag2",
+      "rain_3d_lag2",
+      "rain_7d_lag2",
+      "rain_30d_lag2",
+      "dry_days_lag2",
+      "neighbor_fire_3d",
+      "neighbor_fire_7d",
+      "neighbor_frp_3d",
+      "ring2_fire_7d",
+      "own_fire_30d",
+      "region_fire_3d"
+    ],
+    "validation_average_precision": 0.0876474766037695
+  },
+  "matched_ablation_partner": "extra_trees|weather_only",
+  "calibration": "isotonic regression fit on validation predictions only",
+  "decision_threshold_calibrated": 0.08028846153846153,
+  "validation_metrics_calibrated_in_sample": {
+    "n": 13824,
+    "positives": 486,
+    "prevalence": 0.03515625,
+    "average_precision": 0.08687440455421176,
+    "roc_auc": 0.7417066835249638,
+    "brier": 0.03285363831540819,
+    "threshold": 0.08028846153846153,
+    "accuracy": 0.8195891203703703,
+    "balanced_accuracy": 0.6467819596474567,
+    "precision": 0.09120521172638436,
+    "recall": 0.4609053497942387,
+    "f1": 0.15227736233854522,
+    "confusion_matrix": {
+      "tn": 11106,
+      "fp": 2232,
+      "fn": 262,
+      "tp": 224
+    },
+    "single_class_split": false
+  },
+  "validation_reliability_calibrated_in_sample": [
+    {
+      "bin": 0,
+      "n": 1383,
+      "mean_predicted": 0.0027814662020117734,
+      "observed_rate": 0.0021691973969631237,
+      "p_min": 0.0,
+      "p_max": 0.0031923383878691143
+    },
+    {
+      "bin": 1,
+      "n": 1382,
+      "mean_predicted": 0.008034133609162124,
+      "observed_rate": 0.008683068017366137,
+      "p_min": 0.0031923383878691143,
+      "p_max": 0.009535160905840287
+    },
+    {
+      "bin": 2,
+      "n": 1382,
+      "mean_predicted": 0.011169472186463572,
+      "observed_rate": 0.012301013024602027,
+      "p_min": 0.009535160905840287,
+      "p_max": 0.012476606363069246
+    },
+    {
+      "bin": 3,
+      "n": 1383,
+      "mean_predicted": 0.013718599705016172,
+      "observed_rate": 0.012292118582791034,
+      "p_min": 0.012476606363069246,
+      "p_max": 0.017094017094017096
+    },
+    {
+      "bin": 4,
+      "n": 1382,
+      "mean_predicted": 0.024296716843750128,
+      "observed_rate": 0.024602026049204053,
+      "p_min": 0.017094017094017096,
+      "p_max": 0.028395061728395062
+    },
+    {
+      "bin": 5,
+      "n": 1382,
+      "mean_predicted": 0.028395061728395062,
+      "observed_rate": 0.028219971056439943,
+      "p_min": 0.028395061728395062,
+      "p_max": 0.028395061728395062
+    },
+    {
+      "bin": 6,
+      "n": 1383,
+      "mean_predicted": 0.04101344544725085,
+      "observed_rate": 0.0455531453362256,
+      "p_min": 0.028395061728395062,
+      "p_max": 0.04362230811706239
+    },
+    {
+      "bin": 7,
+      "n": 1382,
+      "mean_predicted": 0.04553803433794819,
+      "observed_rate": 0.04052098408104197,
+      "p_min": 0.04362230811706239,
+      "p_max": 0.06030150753768844
+    },
+    {
+      "bin": 8,
+      "n": 1382,
+      "mean_predicted": 0.07692861677025895,
+      "observed_rate": 0.06295224312590449,
+      "p_min": 0.06030150753768844,
+      "p_max": 0.08028846153846153
+    },
+    {
+      "bin": 9,
+      "n": 1383,
+      "mean_predicted": 0.09967496801824349,
+      "observed_rate": 0.11424439624005785,
+      "p_min": 0.08028846153846153,
+      "p_max": 0.1953125
+    }
+  ],
+  "training_region_bounds": {
+    "min_latitude": 38.75,
+    "max_latitude": 42.25,
+    "min_longitude": -123.25,
+    "max_longitude": -119.75
+  },
+  "target": "qualifying NOAA-20 VIIRS detection in the cell during UTC day d+1, among cells without a detection known at issue time in the previous 7 issue days",
+  "issue_time": "00:00 UTC on issue_date",
+  "prediction_horizon": "24 to 48 hours after issue",
+  "split": {
+    "train_target_end": "2022-12-31",
+    "validation_targets": [
+      "2023-01-01",
+      "2023-12-31"
+    ],
+    "test_targets": [
+      "2024-01-01",
+      "2025-12-31"
+    ],
+    "embargo_days": 32
+  },
+  "split_manifest_sha256": {
+    "train": "a4f724a27a61ef0fe6dad325c18ba634bd49c694a1ab9334a4f1a8832b40ebba",
+    "validation": "4a266da8344a4778fb24a3b7f9fc131c5fdae590d87acdd38528ddda512833dd",
+    "test": "3bf8d4ea328e811da49008b108d828daddefb32c7c2d8b3cb1b5fffd0a1ca1f0",
+    "embargo": "32f77d04ec0f60cea5d8658a5a0f98fa6a6a9deb4bb4e64826443ffd23d20aa3",
+    "unused": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "dataset_sha256_labelled_rows": "81dcbb50c1e72ed3f407d4e946398c0850bc7935cb8af2d67d8ae31672510d17",
+  "test_evaluated": false
+}

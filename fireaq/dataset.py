@@ -107,9 +107,10 @@ def build_release(ingest_dir: Path, name: str = 'firerisk_open_norcal', log=prin
     by_year = prim.groupby(pd.to_datetime(prim['target_date']).dt.year).agg(
         rows=('target_nextday_detection', 'size'), positives=('target_nextday_detection', 'sum'),
         prevalence=('target_nextday_detection', 'mean'),
-        cloud_obscured_share=('target_cloud_obscured_proxy', 'mean'),
-        issue_day_detection_share_of_positives=('detection_on_issue_day', 'mean'))
+        cloud_obscured_share=('target_cloud_obscured_proxy', 'mean'))
     pos = prim[prim['target_nextday_detection'] == 1]
+    by_year['issue_day_detection_share_of_positives'] = pos.groupby(
+        pd.to_datetime(pos['target_date']).dt.year)['detection_on_issue_day'].mean()
     report = {
         'dataset_file': pq.name, 'sha256': sha256(pq), 'rows': int(len(data)), 'columns': int(data.shape[1]),
         'issue_date_range': [data['issue_date'].min(), data['issue_date'].max()],

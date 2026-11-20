@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .core import HISTORY_DAYS, FIRE_LATENCY_H, Grid, make_dataset
+from .core import ELIGIBILITY_DAYS, FIRE_LATENCY_H, HISTORY_DAYS, Grid, make_dataset
 
 PILOT_BBOX = (-123.5, 38.5, -119.5, 42.5)
 
@@ -196,12 +196,15 @@ def predict_live(args):
     manifest = []
     store = _update_nrt_store(live, manifest, load_env_key(), issue)
     obs = pd.to_datetime(store['acq_date'] + ' ' + store['acq_time'].str[:2] + ':' + store['acq_time'].str[2:], utc=True)
-    need_from = pd.Timestamp(issue, tz='UTC') - pd.Timedelta(days=HISTORY_DAYS + 1, hours=FIRE_LATENCY_H)
+    # Days before the store starts would be read as "no fire", so require full coverage of the longest
+    # fire window the frozen model uses (eligibility alone always needs 7 days).
+    days_needed = HISTORY_DAYS if 'own_fire_30d' in bundle['features'] else ELIGIBILITY_DAYS
+    need_from = pd.Timestamp(issue, tz='UTC') - pd.Timedelta(days=days_needed, hours=FIRE_LATENCY_H)
     status = {'issue_time_utc': f'{issue}T00:00:00Z', 'nrt_store_rows': int(len(store)),
               'nrt_history_start_utc': obs.min().isoformat(), 'history_required_from_utc': need_from.isoformat()}
     if obs.min() > need_from:
         status['state'] = 'BLOCKED_INSUFFICIENT_NRT_HISTORY'
-        status['detail'] = (f'Fire features need NRT detections back to {need_from:%Y-%m-%d %H:%MZ}; the local store '
+        status['detail'] = (f'Fire features need NRT detections back to {need_from:%Y-%m-%d %H:%MZ} ({days_needed}-day window); the local store '
                             f'starts {obs.min():%Y-%m-%d %H:%MZ}. Without a FIRMS_MAP_KEY the keyless feed only '
                             'covers 7 days. Set FIRMS_MAP_KEY (backfills automatically) or run this daily until the '
                             'store spans 31 days.')

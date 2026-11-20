@@ -1,0 +1,210 @@
+{
+  "generated_at_utc": "2026-11-20T04:22:14.756161+00:00",
+  "bbox": [
+    -123.5,
+    38.5,
+    -119.5,
+    42.5
+  ],
+  "step": 0.5,
+  "issue_start": "2019-01-01",
+  "issue_end": "2025-12-30",
+  "fire_window": [
+    "2018-11-17",
+    "2025-12-31"
+  ],
+  "padded_fire_bbox": [
+    -124.5,
+    37.5,
+    -118.5,
+    43.5
+  ],
+  "satellite": "noaa20",
+  "firms_per_year": [
+    {
+      "year": 2018,
+      "file": "viirs-jpss1_2018_United_States.csv",
+      "regional_rows": 101079,
+      "national_rows": 461477,
+      "first_acq_date": "2018-04-01",
+      "last_acq_date": "2018-12-31",
+      "distinct_days": 275,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2019,
+      "file": "viirs-jpss1_2019_United_States.csv",
+      "regional_rows": 19369,
+      "national_rows": 451429,
+      "first_acq_date": "2019-01-01",
+      "last_acq_date": "2019-12-31",
+      "distinct_days": 365,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2020,
+      "file": "viirs-jpss1_2020_United_States.csv",
+      "regional_rows": 164588,
+      "national_rows": 665078,
+      "first_acq_date": "2020-01-01",
+      "last_acq_date": "2020-12-31",
+      "distinct_days": 366,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2021,
+      "file": "viirs-jpss1_2021_United_States.csv",
+      "regional_rows": 202023,
+      "national_rows": 670917,
+      "first_acq_date": "2021-01-01",
+      "last_acq_date": "2021-12-31",
+      "distinct_days": 365,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2022,
+      "file": "viirs-jpss1_2022_United_States.csv",
+      "regional_rows": 26801,
+      "national_rows": 546431,
+      "first_acq_date": "2022-01-01",
+      "last_acq_date": "2022-12-31",
+      "distinct_days": 365,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2023,
+      "file": "viirs-jpss1_2023_United_States.csv",
+      "regional_rows": 31856,
+      "national_rows": 390873,
+      "first_acq_date": "2023-01-01",
+      "last_acq_date": "2023-12-31",
+      "distinct_days": 360,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2024,
+      "file": "viirs-jpss1_2024_United_States.csv",
+      "regional_rows": 31747,
+      "national_rows": 535136,
+      "first_acq_date": "2024-01-01",
+      "last_acq_date": "2024-12-31",
+      "distinct_days": 365,
+      "version_values": [
+        "2"
+      ]
+    },
+    {
+      "year": 2025,
+      "file": "viirs-jpss1_2025_United_States.csv",
+      "regional_rows": 22833,
+      "national_rows": 485403,
+      "first_acq_date": "2025-01-01",
+      "last_acq_date": "2025-12-31",
+      "distinct_days": 365,
+      "version_values": [
+        "2"
+      ]
+    }
+  ],
+  "firms_regional_rows_total": 600296,
+  "firms_day_status_counts": {
+    "ok": 2592,
+    "missing": 6,
+    "suspect": 4
+  },
+  "firms_problem_days": [
+    {
+      "date": "2023-07-19",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2023-07-20",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2023-07-21",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2023-07-22",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2023-09-30",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2023-10-01",
+      "n_day": 386.0,
+      "n_night": 0.0,
+      "n_all": 386.0,
+      "status": "suspect"
+    },
+    {
+      "date": "2024-02-03",
+      "n_day": 0.0,
+      "n_night": 258.0,
+      "n_all": 258.0,
+      "status": "suspect"
+    },
+    {
+      "date": "2024-02-04",
+      "n_day": 0.0,
+      "n_night": 0.0,
+      "n_all": 0.0,
+      "status": "missing"
+    },
+    {
+      "date": "2024-02-05",
+      "n_day": 322.0,
+      "n_night": 0.0,
+      "n_all": 322.0,
+      "status": "suspect"
+    },
+    {
+      "date": "2024-02-20",
+      "n_day": 0.0,
+      "n_night": 474.0,
+      "n_all": 474.0,
+      "status": "suspect"
+    }
+  ],
+  "weather": {
+    "cells": 64,
+    "days": 2602,
+    "first_day": "2018-11-17",
+    "last_day": "2025-12-31",
+    "incomplete_days": 0,
+    "missing_by_column": {}
+  },
+  "raw_files": 522,
+  "network_downloads_this_run": 303,
+  "cache_hits_this_run": 219
+}

@@ -1,0 +1,116 @@
+{
+  "dataset_file": "firerisk_open_norcal_v0.2.0.parquet",
+  "sha256": "71ff7c8898c6940d4d4beab342e217e929b6fa8999e0ff34e23b0bb2870ce9be",
+  "rows": 163584,
+  "columns": 47,
+  "issue_date_range": [
+    "2019-01-01",
+    "2025-12-30"
+  ],
+  "cells": 64,
+  "row_accounting": {
+    "total_cell_days": 163584,
+    "not_eligible_recent_detection": 46596,
+    "eligibility_uncertain_firms_day": 1958,
+    "label_withheld_firms_target_day": 193,
+    "non_land_cells": 0,
+    "in_primary_analysis": 114837
+  },
+  "primary_by_target_year": [
+    {
+      "year": 2019,
+      "rows": 17616,
+      "positives": 559.0,
+      "prevalence": 0.03173251589464123,
+      "cloud_obscured_share": 0.27571525885558584,
+      "issue_day_detection_share_of_positives": 0.23971377459749552
+    },
+    {
+      "year": 2020,
+      "rows": 15934,
+      "positives": 635.0,
+      "prevalence": 0.039851889042299485,
+      "cloud_obscured_share": 0.20547257436927324,
+      "issue_day_detection_share_of_positives": 0.247244094488189
+    },
+    {
+      "year": 2021,
+      "rows": 15843,
+      "positives": 597.0,
+      "prevalence": 0.037682257148267374,
+      "cloud_obscured_share": 0.2125228807675314,
+      "issue_day_detection_share_of_positives": 0.24958123953098826
+    },
+    {
+      "year": 2022,
+      "rows": 17191,
+      "positives": 521.0,
+      "prevalence": 0.030306555755918795,
+      "cloud_obscured_share": 0.18282822407073468,
+      "issue_day_detection_share_of_positives": 0.22648752399232247
+    },
+    {
+      "year": 2023,
+      "rows": 15575,
+      "positives": 538.0,
+      "prevalence": 0.03454253611556982,
+      "cloud_obscured_share": 0.2626003210272873,
+      "issue_day_detection_share_of_positives": 0.26022304832713755
+    },
+    {
+      "year": 2024,
+      "rows": 16430,
+      "positives": 555.0,
+      "prevalence": 0.03377967133292757,
+      "cloud_obscured_share": 0.22964090079123556,
+      "issue_day_detection_share_of_positives": 0.25405405405405407
+    },
+    {
+      "year": 2025,
+      "rows": 16248,
+      "positives": 637.0,
+      "prevalence": 0.03920482520925652,
+      "cloud_obscured_share": 0.21048744460856722,
+      "issue_day_detection_share_of_positives": 0.2543171114599686
+    }
+  ],
+  "primary_positive_share_with_issue_day_detection": 0.24764967837704108,
+  "feature_missingness_all_rows": {
+    "latitude": 0,
+    "longitude": 0,
+    "doy_sin": 0,
+    "doy_cos": 0,
+    "temperature_lag2": 0,
+    "tmax_lag2": 0,
+    "humidity_lag2": 0,
+    "rhmin_lag2": 0,
+    "wind_lag2": 0,
+    "windmax_lag2": 0,
+    "vpd_lag2": 0,
+    "rain_3d_lag2": 0,
+    "rain_7d_lag2": 0,
+    "rain_30d_lag2": 0,
+    "dry_days_lag2": 0,
+    "neighbor_fire_3d": 0,
+    "neighbor_fire_7d": 0,
+    "neighbor_frp_3d": 0,
+    "ring2_fire_7d": 0,
+    "own_fire_30d": 0,
+    "region_fire_3d": 0
+  },
+  "rows_by_target_year_all": {
+    "2019": 23296,
+    "2020": 23424,
+    "2021": 23360,
+    "2022": 23360,
+    "2023": 23360,
+    "2024": 23424,
+    "2025": 23360
+  },
+  "land_fraction_min": 0.8772,
+  "cell_area_km2_range": [
+    2288.07,
+    2410.68
+  ],
+  "static_source_mask_boxes": 1822
+}

@@ -1,0 +1,134 @@
+{
+  "generated_at_utc": "2026-11-20T04:39:50.352490+00:00",
+  "weather_subset_cells": [
+    "r0_c0",
+    "r0_c2",
+    "r0_c4",
+    "r0_c6",
+    "r2_c0",
+    "r2_c2",
+    "r2_c4",
+    "r2_c6",
+    "r4_c0",
+    "r4_c2",
+    "r4_c4",
+    "r4_c6",
+    "r6_c0",
+    "r6_c2",
+    "r6_c4",
+    "r6_c6"
+  ],
+  "weather_variable_differences": {
+    "temperature": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": 0.07566927083333339,
+      "mae": 1.3826774553571428,
+      "corr": 0.9732740250667926
+    },
+    "humidity": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": -7.75811011904762,
+      "mae": 10.573087797619047,
+      "corr": 0.849213522514732
+    },
+    "wind": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": 0.8640800595238095,
+      "mae": 1.038803794642857,
+      "corr": 0.6851968750975239
+    },
+    "precipitation": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": -0.7706607142857143,
+      "mae": 1.5078392857142857,
+      "corr": 0.8539517704015889
+    },
+    "tmax": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": -0.4315089285714285,
+      "mae": 1.7232767857142859,
+      "corr": 0.9738962631822232
+    },
+    "rhmin": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": -2.21625,
+      "mae": 7.981428571428571,
+      "corr": 0.850573778785824
+    },
+    "vpd": {
+      "n_cell_days": 11200,
+      "bias_hf_minus_era5": 0.09185709272580776,
+      "mae": 0.20140777469113422,
+      "corr": 0.9396473967432815
+    }
+  },
+  "weather_vintage_model_eval": {
+    "rows_paired": 7529,
+    "era5_inputs": {
+      "n": 7529,
+      "positives": 305,
+      "average_precision": 0.07882945107414452,
+      "roc_auc": 0.6582284915491169,
+      "brier": 0.03827929928547086,
+      "mean_probability": 0.04361596447299099
+    },
+    "historical_forecast_inputs": {
+      "n": 7529,
+      "positives": 305,
+      "average_precision": 0.07496447349987106,
+      "roc_auc": 0.6438992066517799,
+      "brier": 0.038419869023444755,
+      "mean_probability": 0.04466123251286635
+    },
+    "mean_abs_probability_change": 0.007207681468220618,
+    "threshold_decision_agreement": 0.9349183158453978
+  },
+  "fire_label_agreement_typed_vs_typeless": {
+    "cell_days": 44480,
+    "both_positive": 3732,
+    "typed_only_positive": 45,
+    "typeless_only_positive": 116,
+    "eligibility_disagreement": 532
+  },
+  "typeless_fire_model_eval": {
+    "note": "features AND labels re-derived without the type field (static mask applied); rows = test rows eligible under both definitions",
+    "metrics": {
+      "n": 30695,
+      "positives": 1109,
+      "average_precision": 0.08573589111870644,
+      "roc_auc": 0.7075252551943602,
+      "brier": 0.03390540011044157,
+      "mean_probability": 0.038229854405190666
+    },
+    "typed_reference_same_keys": {
+      "n": 30695,
+      "positives": 1106,
+      "average_precision": 0.08542331772971376,
+      "roc_auc": 0.7064959321853456,
+      "brier": 0.03383063869621978,
+      "mean_probability": 0.038330758708208956
+    }
+  },
+  "not_measured": [
+    "FIRMS standard-processing vs NRT detection/geolocation differences (needs MAP_KEY NRT archive or prospective collection)",
+    "NRT latency distribution (3 h assumed)"
+  ],
+  "summary": {
+    "weather_AP_era5_vs_hf": [
+      0.07882945107414452,
+      0.07496447349987106
+    ],
+    "weather_decision_agreement": 0.9349183158453978,
+    "label_agreement": {
+      "cell_days": 44480,
+      "both_positive": 3732,
+      "typed_only_positive": 45,
+      "typeless_only_positive": 116,
+      "eligibility_disagreement": 532
+    },
+    "typeless_AP_vs_typed_AP": [
+      0.08573589111870644,
+      0.08542331772971376
+    ]
+  }
+}
