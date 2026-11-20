@@ -66,6 +66,14 @@ def update_store(live: Path, manifest: list, key: str, issue, now: pd.Timestamp)
     k = ['latitude', 'longitude', 'acq_date', 'acq_time']
     if store_p.exists():
         old = pd.read_parquet(store_p)
+        for c in ['acq_date', 'acq_time']:
+            old[c] = old[c].astype(str)
+        old['acq_time'] = old['acq_time'].str.replace(r'\.0$', '', regex=True).str.zfill(4)
+        if 'acq_utc' not in old or old['acq_utc'].isna().any():      # stores written by v0.2
+            old['acq_utc'] = pd.to_datetime(old['acq_date'] + ' ' + old['acq_time'].str[:2] + ':'
+                                            + old['acq_time'].str[2:], utc=True)
+        if 'first_seen_utc' not in old:
+            old['first_seen_utc'] = pd.NaT
         fresh = new.merge(old[k], on=k, how='left', indicator=True)
         fresh = fresh[fresh['_merge'] == 'left_only'].drop(columns='_merge')
         store = pd.concat([old, fresh], ignore_index=True)
@@ -174,12 +182,15 @@ def run_live_v3(model_path: Path = Path('output_v3/model_v3.joblib'), live: Path
         if len(miss) > MAX_MISSING_WEATHER * len(land):
             return refuse('REFUSED_WEATHER', f'{reg}: POWER d-2 ({d2}) missing for {len(miss)}/{len(land)} cells '
                                              '(near-real-time latency)')
-        ds = make_dataset_v3(store, wx, cells, reg, spec['bbox'], STEP, str(issue), str(issue), predict_only=True,
-                             static_mask=mask)
-        scored = set(ds['cell_id'])
-        for cid in set(land.cell_id) - scored:
-            unscored.setdefault(reg, []).append({'cell_id': cid, 'reason': 'detection known in the last 7 days '
-                                                 '(not eligible by design) or a missing input'})
+        full = make_dataset_v3(store, wx, cells, reg, spec['bbox'], STEP, str(issue), str(issue), predict_only=True,
+                               static_mask=mask, keep_ineligible=True)
+        ds = full[full['eligible_new_activity']].copy()
+        for cid in sorted(full.loc[~full['eligible_new_activity'], 'cell_id']):
+            unscored.setdefault(reg, []).append({'cell_id': cid, 'reason': 'not eligible by design: a NOAA-20 '
+                                                 'detection was known in this cell during the last 7 days'})
+        for cid in sorted(set(land.cell_id) - set(full['cell_id'])):
+            unscored.setdefault(reg, []).append({'cell_id': cid, 'reason': 'missing input (weather or static layer); '
+                                                 'not imputed'})
         if ds.empty:
             continue
         raw = bundle['model'].predict_proba(ds[bundle['features']])[:, 1]

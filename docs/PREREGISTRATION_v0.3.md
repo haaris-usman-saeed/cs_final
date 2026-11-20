@@ -89,4 +89,20 @@ v0.2 inspected NorCal 2019–2025 including test labels. NorCal therefore stays 
 inspecting their FIRMS data.
 
 ## Change log after pre-registration
-(none yet)
+Every change below was made **before the frozen champion existed** unless stated otherwise.
+
+1. **Terrain access method** (before any modelling). The Open-Meteo elevation API hit its rate limits (each
+   100-point request counts as ~100 calls), so terrain is now read from the same Copernicus DEM GLO-90 via its public AWS COGs.
+   Statistics are the mean and std of 90 m pixels average-resampled to ~180 m, instead of a 7×7 point sample. The product
+   is unchanged.
+2. **Ablation pair definition** (bug found by a synthetic test, before real training). If a baseline won the champion rule,
+   the matched pair was undefined. The A/B ablation now uses the champion family if it is learned, otherwise the best learned family.
+   On the real data the champion is learned (Extra Trees), so the pair is the champion family as originally intended.
+3. **Reporting-only columns** (before real training): per-development-region out-of-fold AP was added to the leaderboard. Selection is
+   unchanged.
+4. **After the one-time test (reporting only, no refit):**
+   * per-region bootstrap CIs were computed from the saved test predictions (`scripts/make_report_v3.py`);
+   * the released Parquet was re-written with zstd compression (content hash verified identical to the frozen development rows);
+   * the live job's unscored-cell messages were split into "not eligible" vs "missing input".
+5. **Disclosure.** The ingest log printed one aggregate number per region: raw NOAA-20 detections 2018–2025 inside the padded
+   bbox. That includes the two test regions. No split-wise label statistics were viewed before the test.

@@ -155,3 +155,27 @@ def test_v3_development_never_sees_test_rows_and_test_runs_once(tmp_path, monkey
     with pytest.raises(RuntimeError, match='already been run'):
         ex.run_final_test_v3(df, tmp_path, log=lambda *_: None)
     assert json.loads((tmp_path / 'frozen_champion_v3.json').read_text())['test_evaluated'] is True
+
+
+def test_live_gap_detection_flags_missing_and_one_sided_days():
+    from fireaq.live_v3 import coverage_by_day
+    rows = []
+    for day, nd, nn in [('2026-11-10', 500, 400), ('2026-11-11', 0, 0), ('2026-11-12', 480, 0), ('2026-11-13', 510, 390)]:
+        rows += [{'acq_utc': pd.Timestamp(f'{day} 10:00', tz='UTC'), 'daynight': 'D'}] * nd
+        rows += [{'acq_utc': pd.Timestamp(f'{day} 21:00', tz='UTC'), 'daynight': 'N'}] * nn
+    cov = coverage_by_day(pd.DataFrame(rows), ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13'])
+    assert cov['gap'].tolist() == [False, True, True, False]
+
+
+def test_api_marks_yesterdays_issue_as_stale(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from fastapi.testclient import TestClient
+    from fireaq import server
+    now = datetime.now(timezone.utc)
+    p = tmp_path / 'p.json'
+    p.write_text(json.dumps({'generated_at_utc': now.isoformat(),
+                             'issue_time_utc': (now - timedelta(days=1)).strftime('%Y-%m-%dT00:00:00Z'),
+                             'predictions': [{'region': 'pnw', 'cell_id': 'r0_c0', 'probability_nextday_detection': 0.1}]}))
+    monkeypatch.setenv('FIRERISK_PREDICTIONS', str(p))
+    body = TestClient(server.app).get('/api/predictions').json()
+    assert body['stale'] is True and 'not today' in body['stale_reason']

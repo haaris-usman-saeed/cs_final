@@ -80,7 +80,7 @@ def build_release_v3(root: Path = Path('data/v03'), reveal_test_labels: bool = F
     data['raw_manifest_sha256'] = _sha(root / 'manifest.json')
     data = data.sort_values(['region', 'issue_date', 'cell_key']).reset_index(drop=True)
     pq = out / f'firerisk_open_multiregion_v{DATASET_VERSION}.parquet'
-    data.to_parquet(pq, index=False)
+    data.to_parquet(pq, index=False, compression='zstd', compression_level=9)
     (interim / 'static_source_mask_2019_2022_all_regions.json').write_text(json.dumps(sorted(masks)) + '\n')
     pd.DataFrame([{'column': c, 'dtype': str(data[c].dtype), 'description': DICTIONARY_V3.get(c, '')}
                   for c in data.columns]).to_csv(out / 'data_dictionary_v3.csv', index=False)

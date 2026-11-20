@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 — 2026-11-20: multi-region dataset, audited methodology, untouched test, hardened live pipeline
+* `docs/AUDIT_v0.2.md`: 14 findings in v0.2. Key ones: single-year selection, coordinates as features, a confounded fire ablation,
+  and a climatology baseline that cannot be used in new regions.
+* `docs/PREREGISTRATION_v0.3.md`, committed before any new data, with a change log.
+* New keyless sources: NASA POWER (weather and soil wetness, the same source for training and live), ESA WorldCover 2020,
+  Copernicus DEM GLO-90 COGs, FIRMS S-NPP 2012–2017 climatology. Modules: `fireaq/regions.py`, `ingest3.py`, `features_v3.py`,
+  `dataset3.py`.
+* 6 regions: 4 for development, 2 untouched test regions. Dataset `firerisk_open_multiregion_v0.3.0.parquet` (973,836
+  cell-days, deterministic).
+* `fireaq/experiment_v3.py`:
+  * rolling-origin CV, 1-SE rule, then leave-one-region-out selection;
+  * 13 candidates including XGBoost, matched A/B feature sets;
+  * cross-fitted calibration checks, event-level metrics, week- and cell-cluster bootstrap CIs;
+  * one-time test guard with a dev-data hash;
+  * secondary regression on log1p counts.
+* `fireaq/live_v3.py`: feed health checks for 4 satellites, first-seen NRT store, latency upper bounds, gap detection,
+  stale/history/weather refusals, multi-region scoring, uncertainty and freshness metadata, explicit unscored reasons.
+* API: `/api/regions`, region and cell filters, staleness by issue date, v0.3 model and test endpoint. The website gets region tabs and
+  per-region test skill.
+* `scripts/macos_xgboost_libomp.sh`: venv-local XGBoost OpenMP fix (no system changes).
+* Tests: 23 → 33 (synthetic only).
+
+
 ## 0.2.0 — 2026-11-19/20: audit fixes, real-data pilot, model comparison
 
 ### Audit of v0.1 (bundle as received, commit `89ae3a5`): 9/9 synthetic tests passed. Confirmed defects

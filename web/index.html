@@ -49,8 +49,7 @@ function perfFor(reg){if(!M||!M.test)return '<p>No untouched-test results yet.</
  let rows='';for(const [set,label] of [['test_time','2024–25 (untouched)'],['test_space_primary','2024–25, unseen region'],['test_space_secondary','2019–23, unseen region'],['previously_tested_norcal','2024–25, already seen in v0.2']]){
   const b=M.test[set]?.by_region?.[reg];if(!b)continue;const c=b.champion,h=b.climatology_hist_snpp;
   rows+=`<tr><td>${label}<br><span class="pill">${c.positives} detections / ${c.n} cell-days</span></td><td>AP ${n3(c.ap)}<br><span class="muted">climatology ${n3(h.ap)} · base ${pct(c.positives/c.n)}</span></td></tr>`}
- const t=M.test.test_time?.bootstrap_week?.champion?.ap_ci95;
- return rows?`<table>${rows}</table><p>AP = average precision (higher is better; equals the base rate for a useless model). Pooled 2024–25 untouched-test 95% CI for the champion: ${t?n3(t[0])+'–'+n3(t[1]):'n/a'}.</p>`:'<p>No untouched-test result for this region.</p>'}
+ return rows?`<table>${rows}</table><p>AP = average precision: higher is better, and a useless model scores the base rate. Climatology = the cell's 2012–2017 fire history alone. 95% confidence intervals per region are in <code>release_v3/RESULTS_v3.md</code>; in the Ozarks the gain over climatology is not statistically clear.</p>`:'<p>No untouched-test result for this region.</p>'}
 function draw(reg){cur=reg;for(const b of document.querySelectorAll('.tab'))b.setAttribute('aria-selected',b.dataset.r===reg);
  const g=R[reg],[w,s,e,n]=g.bbox,W=(e-w)/.5,H=(n-s)/.5,map=$('map');map.innerHTML='';$('maptitle').textContent=`${g.name} — ${roleLabel[g.role_in_v03]||g.role_in_v03}`;
  const preds=(P?.predictions||[]).filter(p=>p.region===reg),byKey={};for(const p of preds)byKey[Math.floor((p.latitude-s)/.5)+'_'+Math.floor((p.longitude-w)/.5)]=p;

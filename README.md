@@ -1,139 +1,125 @@
-# FireRisk Open v0.2
+# FireRisk Open v0.3
 
 > **Research prototype. Not for evacuation, suppression, dispatch, public alerts or any emergency decision.**
-> It estimates the probability of a NOAA-20 VIIRS *satellite active-fire detection*, not wildfire ignition,
-> spread or danger. A non-detection is not evidence that there was no fire.
+> Outputs are calibrated probabilities of a *new NOAA-20 VIIRS satellite active-fire detection* in a 0.5° cell during the
+> next UTC day — **not** probabilities of wildfire ignition, spread or danger. A non-detection is not evidence of no fire.
 
-An MIT-licensed, reproducible pipeline and **original dataset** linking NASA FIRMS VIIRS active-fire detections
-with ECMWF ERA5 weather on a 0.5° grid. It includes a leakage-safe model comparison and a read-only prediction API.
+An MIT-licensed, reproducible pipeline and **original open dataset** linking NASA FIRMS satellite fire detections with
+NASA POWER weather and soil moisture, ESA WorldCover land cover, Copernicus DEM terrain and a pre-2018 fire climatology,
+for **6 US regions** (2019–2025). It includes a leakage-safe model comparison evaluated once on regions and years never
+used for development, and a read-only prediction website/API fed by a fail-safe daily NRT job.
 
-**Task.** For a land cell at 00:00 UTC on issue day *d*, among cells with no detection *known at issue time*
-during the previous 7 days, predict whether a qualifying NOAA-20 VIIRS detection (nominal/high confidence,
-presumed vegetation fire) occurs in the cell during UTC day *d+1* (24–48 h ahead).
+**Task.** At 00:00 UTC on day *d*, for each land cell with no detection known in the previous 7 days: will NOAA-20 record a
+qualifying (nominal/high-confidence, vegetation-type) detection in that cell during UTC day *d+1*?
 
-## Status (measured, 2026-11-20)
+## Results in one table (one-time untouched test; details in `release_v3/RESULTS_v3.md`)
 
-| Component | Status |
-|---|---|
-| Real data | ✅ 8 NOAA-20 FIRMS yearly archives (2018–2025) + 512 ERA5 chunks + Natural Earth, all SHA-256 manifested (`release/ingest_manifest.json`) |
-| Dataset | ✅ `release/firerisk_open_norcal_v0.2.0.parquet`: 163,584 cell-days, 114,837 in primary analysis, 4,042 positives. Rebuild is byte-identical |
-| Models | ✅ 11 families × 2 feature sets, validation-only selection, one-time test (`release/RESULTS.md`) |
-| Skill | ⚠️ **Weak.** Test AP 0.085 vs climatology 0.076 vs base rate 0.036. The gain over climatology is not robust to week-clustered bootstrap (CI includes 0). Fire-history features add nothing over weather-only |
-| Spatial transfer | ⚠️ AP drops in all 4 held-out 2°×2° blocks |
-| Live predictions | ⚠️ Pipeline works keylessly, but publishing is **blocked** until the local NRT store spans 30 days, or until a `FIRMS_MAP_KEY` is set to backfill. Live inputs are unvalidated |
-| FIRMS MAP_KEY API path | ⏸ Implemented, not exercised (no key available) |
-| PM2.5 module | ⛔ Blocked: OpenAQ v3 requires an API key (HTTP 401) |
+| Test | Base rate | **Model AP** (95% CI) | Fire-climatology AP | Gain over climatology |
+|---|---|---|---|---|
+| New years 2024–25 in NRockies / Southwest / Southeast | 0.035 | **0.186** (0.155–0.221) | 0.121 | clear (CI +0.046 to +0.086) |
+| **Never-used regions** PNW + Ozarks, 2024–25 | 0.062 | **0.130** (0.112–0.154) | 0.115 | small (CI +0.008 to +0.024); Ozarks alone not significant |
 
-Read `docs/MODEL_CARD.md` and `docs/DATA_CARD.md` before using anything here.
+* Fire-history features: **no demonstrated gain inside known regions; a significant gain in unseen regions** (Δ AP CI +0.011 to +0.027).
+* Skill is modest: in unseen regions about 14% of alerts are followed by a detection and 46% of detections were alerted.
+* v0.2's single-region model scored AP 0.085 on NorCal 2024–25; v0.3 scores 0.094 there, but that set was already seen, so treat it as indicative only.
 
-## Use the released data (no downloads needed)
+Read `docs/MODEL_CARD_v0.3.md`, `docs/DATA_CARD_v0.3.md`, `docs/AUDIT_v0.2.md` and `docs/PREREGISTRATION_v0.3.md`.
+
+## Use the data (no downloads)
 
 ```python
 import pandas as pd
-df = pd.read_parquet('release/firerisk_open_norcal_v0.2.0.parquet')
-primary = df[df.in_primary_analysis]          # modelling population
-print(primary.target_nextday_detection.mean())
+df = pd.read_parquet('release_v3/firerisk_open_multiregion_v0.3.0.parquet')
+dev = df[df.in_primary_analysis & (df.role == 'dev')]        # development rows
+print(dev.groupby('region').target_nextday_detection.mean())
 ```
 
-Column definitions are in `release/data_dictionary.csv`. Checksums are in `release/SHA256SUMS`.
+## Reproduce from a clean checkout
 
-## Reproduce everything from a clean checkout
-
-Python ≥ 3.10 (the reported run used 3.14.5 on macOS arm64; exact versions are in `requirements-lock.txt`).
+Python ≥ 3.10. The reported run used 3.14.5 on macOS arm64; exact versions are in `requirements-lock.txt`.
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
+```
+
+On macOS, if `import xgboost` fails for lack of `libomp`, this script fixes it inside the venv only (or `brew install libomp`):
+
+```bash
+scripts/macos_xgboost_libomp.sh
+```
+
+```bash
 python -m pytest -q
 ```
 
-```bash
-python -m fireaq ingest-archive --out data/norcal
-```
-
-That command downloads about 345 MB from FIRMS plus 512 Open-Meteo requests, roughly 1–2 h because of the fair-use pacing. It needs no key. It resumes from cache if interrupted.
+Keyless ingest, about 15–25 min. It downloads ~555 MB of FIRMS archives, 381 POWER requests and the WorldCover/DEM COG windows, and resumes from cache:
 
 ```bash
-python -m fireaq build --input data/norcal
+python -m fireaq ingest-v3
+```
+
+Deterministic dataset build. Test-label statistics are withheld unless you add `--reveal-test-labels`:
+
+```bash
+python -m fireaq build-v3
+```
+
+Development stage, about 20 min. It uses development rows only, then freezes the champion to `output_v3/`:
+
+```bash
+python -m fireaq experiment-v3
+```
+
+One-time untouched test. It refuses to run twice or if the development rows changed:
+
+```bash
+python -m fireaq evaluate-test-v3
 ```
 
 ```bash
-python -m fireaq experiment --data data/norcal/dataset/firerisk_open_norcal_v0.2.0.parquet --out output
+python scripts/make_report_v3.py
 ```
 
-```bash
-python -m fireaq evaluate-test --data data/norcal/dataset/firerisk_open_norcal_v0.2.0.parquet --out output
-```
-
-```bash
-python -m fireaq vintage-check --data data/norcal/dataset/firerisk_open_norcal_v0.2.0.parquet --out output
-```
-
-```bash
-python scripts/make_report.py
-```
-
-`experiment` never reads test labels. It writes the validation leaderboard and `output/frozen_champion.json`.
-`evaluate-test` refuses to run a second time in the same output directory, and refuses if the dataset hash changed.
-The design was fixed in `docs/PREREGISTRATION.md` before any metric was seen.
-
-## Live predictions and the API
+## Live predictions, website and API
 
 ```bash
 python -m fireaq predict-live
 ```
 
-`predict-live` downloads the keyless NOAA-20 NRT 7-day feed into `data/live/nrt_store.parquet`, pulls Open-Meteo
-forecast-API weather, builds the 00:00 UTC snapshot and scores it with the frozen model.
-It **refuses** to publish if the NRT history does not cover the champion's 30-day fire window. In that case it writes
-`data/live/live_status.json` with state `BLOCKED_INSUFFICIENT_NRT_HISTORY`. To unblock, either
-`export FIRMS_MAP_KEY=...` (free from https://firms.modaps.eosdis.nasa.gov/api/map_key/; backfilled automatically)
-or run it daily (e.g. `scripts/update_daily.sh`) until the store spans 31 days.
+The daily job does inference only, never retraining. It:
+1. checks the health of all FIRMS NRT feeds and uses only NOAA-20, the training sensor;
+2. appends to a local NRT store with first-seen times, so latency can be measured;
+3. refuses to publish when the feed is empty or stale (> 18 h), NRT history doesn't cover the 7-day window, a day in that window has a detection gap,
+   or POWER weather for d−2 is missing for > 10% of cells;
+4. scores the 6 regions with the frozen model.
+
+Every run writes `data/live/live_status.json`. Schedule it daily with `scripts/update_daily.sh`; no job is installed by default.
 
 ```bash
 uvicorn fireaq.server:app --host 127.0.0.1 --port 8000
 ```
 
 ```bash
-curl -s http://127.0.0.1:8000/api/model
-```
-
-```bash
-curl -s "http://127.0.0.1:8000/api/predictions?cell_id=r4_c3"
+curl -s "http://127.0.0.1:8000/api/predictions?region=pnw"
 ```
 
 | Endpoint | Returns |
 |---|---|
-| `/` | Dashboard: grid, live status, frozen-model metrics |
-| `/api/predictions` | Latest predictions, `age_hours`, `stale` flag; **503** if none exist; `?cell_id=` filter |
-| `/api/model` | Champion, split, test metrics with bootstrap CIs |
-| `/api/status` | Last live run state (e.g. blocked reason) |
-| `/health` | Liveness and whether predictions/metrics exist |
+| `/` | Website: region tabs, grid, per-region untouched-test skill, data freshness, refusal reasons |
+| `/api/predictions?region=&cell_id=` | Latest predictions, freshness, `stale` flag (not issued today, or > 36 h old), uncertainty, unscored cells with reasons; **503** if none |
+| `/api/model` | Champion, selection rule, validation ablation, all test sets with CIs and event metrics |
+| `/api/regions` | Supported regions; nothing outside them is predicted |
+| `/api/status` | Last live-run state and checks |
 
-The server never calls data sources or models on request, and never shows placeholder numbers.
-**Daily inference** re-scores with the frozen model. **Retraining** needs newly published standard-processing labels
-and a new pre-registered validation/test cycle.
+Live inputs (NRT detections without `type`; POWER GEOS-IT for recent days) differ from the training inputs and are
+**not separately validated**. Treat live output as experimental.
 
-## Repository layout
+## Earlier pilot (v0.2, NorCal only)
+Kept for reproducibility: `ingest-archive`, `build`, `experiment`, `evaluate-test`, `vintage-check` and `predict-live-v02`, with
+results in `release/RESULTS.md` and `docs/MODEL_CARD.md`.
 
-```
-fireaq/        sources.py (clients) · ingest.py · geo.py (land mask, cell area) · core.py (labels/features)
-               dataset.py (release) · experiment.py (models, splits, test-once) · vintage.py · model.py · server.py · cli.py
-docs/          PREREGISTRATION.md · DATA_CARD.md · MODEL_CARD.md · DECISIONS.md · CLAUDE_HANDOFF.md
-release/       dataset, data dictionary, coverage/ingest reports, manifests, leaderboards, test results, RESULTS.md
-tests/         synthetic-only unit/integration tests
-legacy/        original PM2.5 feasibility probe (reference only)
-data/, output/ git-ignored working directories (raw/ → interim/ → dataset/)
-```
-
-## Data sources, licences, attribution
-
-* **NASA FIRMS** NOAA-20 VIIRS 375 m active fire (yearly country archive; NRT feed). "We acknowledge the use of data
-  and imagery from LANCE FIRMS operated by NASA's Earth Science Data and Information System (ESDIS) with funding
-  provided by NASA Headquarters." NASA data are openly available; no endorsement implied.
-* **ECMWF ERA5** (Hersbach et al., 2020) and operational forecast models via **Open-Meteo** (CC BY 4.0, attribution required;
-  the free API is for non-commercial use).
-* **Natural Earth** land/lakes (public domain).
-* Released dataset: CC BY 4.0. Code: MIT. Upstream terms are not superseded by this repository's licences.
-
-See `CHANGELOG.md` for audit findings and fixes.
+## Attribution and licences
+NASA FIRMS (LANCE / ESDIS) · NASA POWER (NASA LaRC; MERRA-2, GEOS-IT, CERES) · ESA WorldCover 2020 (CC BY 4.0) · Copernicus DEM
+GLO-90 (© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the EU and ESA) ·
+ECMWF ERA5 via Open-Meteo (v0.2 only, CC BY 4.0) · Natural Earth (public domain). No endorsement implied.
+Code: MIT. Datasets: CC BY 4.0. Upstream terms are not superseded.

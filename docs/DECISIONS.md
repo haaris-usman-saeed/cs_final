@@ -39,3 +39,13 @@ champion has AP 0.085, climatology 0.076 and the base rate is 0.036. The gain ov
 time-clustered uncertainty, and fire-history features add no measurable skill over weather-only. **Gate 3
 ("outperform climatology with reasonable uncertainty") is NOT met.** No operational claims. Live publishing stays
 experimental, and it is blocked until 30 days of NRT history exist.
+
+## Outcome of v0.3 (2026-11-20)
+
+The one-time untouched test is in `release_v3/RESULTS_v3.md`. In 3 regions over new years, the model beats a pre-2018 fire
+climatology with CIs excluding zero (AP 0.186 vs 0.121). In 2 never-used regions the margin is small (AP 0.130 vs 0.115) and
+not significant in the Ozarks alone. Fire history helps transfer to new regions but not prediction inside known ones.
+
+**Gate 3 is partly met:** temporal and geographic hold-outs beat climatology with uncertainty, but by a small
+margin geographically. **Gate 4 is NOT met:** live weather (GEOS-IT) and NRT fire inputs are not validated against the training
+vintages. No operational claims.
