@@ -11,6 +11,7 @@ dependencies = ["numpy>=1.24,<3","pandas>=2.0,<3","scikit-learn>=1.3,<2","reques
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "httpx>=0.24"]
+report = ["matplotlib>=3.8,<4"]
 
 [project.scripts]
 fireaq = "fireaq.cli:main"
