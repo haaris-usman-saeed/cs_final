@@ -7,3 +7,7 @@ data/*
 !data/.gitkeep
 output/
 *.joblib
+logs/
+*.part
+!release/
+*.egg-info/
