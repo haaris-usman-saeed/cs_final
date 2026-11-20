@@ -45,8 +45,19 @@ Exit codes: `0` published · `2` model rebuild/verification failed · `3` safegu
 * **State seeded with an existing NRT store:** OK, 196 cells scored, validated, published, and 196 prediction records logged.
   A second run the same day did not re-issue. The append-only check passed.
 
+### Architecture finding (CI, 2026-11-20)
+The frozen champion was trained and evaluated on **arm64**. Rebuilding it on **x86_64**, with identical library versions and the
+same seed, gives a **different model**: max |Δp| = 0.0221 on the reference rows, and threshold 0.1347 instead of 0.1304.
+* The same result appears on GitHub's Linux x86 runner and on macOS x86_64 under Rosetta, so the cause is CPU architecture,
+  not the OS or Python version. Near-tied tree splits resolve differently at the floating-point level.
+* The fingerprint check refuses that model.
+* The daily job and the strict CI check therefore run on **arm64 `macos-15` runners**, Python 3.14.
+* Deploying on x86 would need the exact frozen model file (sha256 in `release_v3/frozen_model_sha256.txt`) published as an
+  artefact, or a new pre-registered evaluation of an x86 model. It is **not** done silently.
+* CI job `x86-rebuild-difference` keeps this visible.
+
 ## 2. Requirements
-* Python 3.11–3.14 (CI covers 3.11 and 3.12; the reported runs used 3.14.5 on macOS arm64). Dependencies are in `pyproject.toml`, and exact
+* Python 3.11–3.14 (tests on 3.11 and 3.12; the deployed model needs **arm64**, and the CI/daily jobs use Python 3.14 on macos-15). Dependencies are in `pyproject.toml`, and exact
   versions in `requirements-lock.txt`.
 * macOS only: the XGBoost wheels need `libomp`. Run `scripts/macos_xgboost_libomp.sh` (venv-local) or `brew install libomp`.
   XGBoost is only used for model comparison, not by the deployed Extra Trees champion.
@@ -61,7 +72,7 @@ Exit codes: `0` published · `2` model rebuild/verification failed · `3` safegu
 
 | Item | Amount | Cost |
 |---|---|---|
-| GitHub Actions, daily job | ~10 min/run, estimated from local measurements (inference ~8 min on a laptop, rebuild ~8 s) plus ~1–2 min pip install; not yet measured on a GitHub runner → ~300 runner-min/month | **free**: the repository is public, and standard runners are free for public repos. A private repo on the Free plan has 2,000 min/month |
+| GitHub Actions, daily job (macos-15 arm64 runner) | ~10 min/run, estimated from local measurements (inference ~8 min on a laptop, rebuild ~8 s) plus ~1–2 min pip install; not yet measured on a GitHub runner → ~300 runner-min/month | **free**: the repository is public, and standard runners, including macOS, are free for public repos. A private repo on the Free plan has 2,000 min/month |
 | GitHub Actions, CI | ~4 jobs × 3–8 min per push/PR | free (public repo) |
 | State branch growth | prospective log ~170 KB/day (196 predictions, measured), gzipped input manifests ~29 KB/day, public JSON ~165 KB overwritten daily | ≈ 70–130 MB/year before git compression; consider yearly log rotation (start a new chained file) |
 | Actions cache | NRT store ~0.4 MB per 7 days, capped at 60 days (~3.5 MB) | free (10 GB per repo) |
@@ -92,7 +103,11 @@ Exit codes: `0` published · `2` model rebuild/verification failed · `3` safegu
 | `pytest` | 34/34 passed (the suite at that commit) |
 | `ingest-v3` (409 downloads, no keys) | OK, ~15 min |
 | `build-v3` | **Dataset content identical to the released file** (973,836 × 65). Only the `raw_manifest_sha256` column differs, because retrieval timestamps differ |
-| `experiment-v3`, `evaluate-test-v3` | see `docs/REPRODUCIBILITY_RUN_2026-11-20.md` |
+| `experiment-v3` | **Same champion; validation leaderboard identical** (max abs ΔAP 0.0 over 21 rows, including LORO); ~9 min |
+| `evaluate-test-v3` (reproduction only, separate output dir) | **Identical test APs** for all four test sets (e.g. T-time 0.18563…, T-space 0.12984…) |
+| Total | ~29 min wall time on a laptop |
+
+**Answer: yes.** On 2026-11-20 the full pipeline was reproduced from a clean checkout with identical results.
 
 Known reproducibility limits:
 * Upstream sources can revise data. FIRMS replaces NRT with SP, and POWER and WorldCover releases change, so a future

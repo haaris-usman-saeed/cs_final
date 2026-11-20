@@ -22,6 +22,11 @@
   browser-side staleness.
 * `docs/OPERATIONS.md`: deployment, measured costs, licences, clean-checkout reproduction record.
 * Tests: 34 → 38.
+* CI found that an **x86_64 rebuild of the frozen model differs** from the arm64-trained model (max |Δp| 0.022), and the fingerprint
+  check refused it. Reproduced with Rosetta, so the cause is architecture. The strict check and the daily job now run on arm64 macos-15; an
+  x86 CI job documents the difference.
+* `docs/REPRODUCIBILITY_RUN_2026-11-20.md`: a full clean-clone reproduction (arm64). The dataset content, leaderboard and test APs
+  are identical.
 
 
 ## 0.3.0 — 2026-11-20: multi-region dataset, audited methodology, untouched test, hardened live pipeline

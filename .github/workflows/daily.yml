@@ -14,13 +14,15 @@ env:
   STATE_BRANCH: prospective-state
 jobs:
   daily:
-    runs-on: ubuntu-latest
+    # arm64: the frozen model was trained and evaluated on arm64; an x86_64 rebuild is a different, unevaluated model
+    # and is refused by the fingerprint check (docs/OPERATIONS.md).
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
           cache: pip
       - run: pip install -e .
 

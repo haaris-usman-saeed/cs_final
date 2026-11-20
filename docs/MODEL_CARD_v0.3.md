@@ -97,6 +97,11 @@ On NorCal 2024–25, v0.2 scored AP 0.085 and v0.3 scores 0.094. That set had al
   * Standard-processing vs NRT FIRMS detection differences remain **unmeasured**: that needs a MAP_KEY or prospective collection.
 * Supported area: only the 6 listed 4°×4° regions. The model refuses anywhere else.
 
+## Reproducibility
+On arm64, rebuilding from the released dataset gives the identical model (max |Δp| ≤ 1.5e-14), and a clean-clone run
+reproduces the leaderboard and test APs exactly. On x86_64, the same code and versions give a slightly different model
+(max |Δp| 0.022), so deployment is restricted to arm64 (`docs/OPERATIONS.md`).
+
 ## Live (prospective) performance
 **Not available.** Each live prediction is logged before its outcome is known (`fireaq/prospective.py`). Performance will be
 reported only after ≥ 60 resolved issue days and ≥ 50 observed detections, and labelled provisional (NRT outcomes) until a
