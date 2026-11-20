@@ -1,0 +1,66 @@
+column,dtype,description
+region,object,Study region key (see fireaq/regions.py).
+cell_key,object,"region:cell_id, unique across regions."
+cell_id,object,
+cell_global_id,object,
+issue_date,object,
+target_date,object,
+issue_time_utc,object,
+target_start_utc,object,
+target_end_utc,object,
+latitude,float64,
+longitude,float64,
+land_fraction,float64,
+cell_area_km2,float64,
+doy_sin,float64,
+doy_cos,float64,
+t2m_lag2,float64,NASA POWER (MERRA-2) 2 m mean air temperature on UTC day d-2 (°C).
+t2m_max_lag2,float64,Daily maximum 2 m temperature on d-2 (°C).
+rh2m_lag2,float64,"2 m relative humidity, daily mean, d-2 (%)."
+vpd_lag2,float64,"VPD from T2M_MAX and daily-mean RH2M (Tetens), d-2 (kPa); an upper-range approximation."
+ws10m_lag2,float64,"10 m wind speed, daily mean, d-2 (m/s)."
+ws10m_max_lag2,float64,"10 m wind speed, daily max, d-2 (m/s)."
+rain_3d_lag2,float64,PRECTOTCORR total over d-4..d-2 (mm).
+rain_7d_lag2,float64,over d-8..d-2 (mm).
+rain_30d_lag2,float64,over d-31..d-2 (mm).
+rain_90d_lag2,float64,over d-91..d-2 (mm).
+dry_days_lag2,float64,"Consecutive days < 1 mm ending d-2, capped at 30."
+gwettop_lag2,float64,"MERRA-2 surface soil wetness (0-5 cm, fraction of saturation), d-2."
+gwetroot_lag2,float64,"MERRA-2 root-zone soil wetness (0-100 cm), d-2."
+gwetroot_chg30_lag2,float64,Root-zone soil wetness change d-32 -> d-2 (drying is negative).
+lc_tree,float64,ESA WorldCover 2020 tree-cover fraction of the cell.
+lc_shrub,float64,shrubland fraction.
+lc_grass,float64,grassland fraction.
+lc_crop,float64,cropland fraction.
+lc_built,float64,built-up fraction.
+lc_bare,float64,bare/sparse fraction.
+lc_wetland,float64,herbaceous wetland fraction.
+elev_mean_m,float64,Copernicus DEM GLO-90 mean of 7x7 samples (m).
+elev_std_m,float64,"std of the 49 samples (m), a roughness proxy."
+neighbor_fire_3d,float64,"Qualifying detections in the 8 neighbour cells known at issue, last 3 issue days."
+neighbor_fire_7d,float64,"Same, last 7 issue days."
+neighbor_frp_3d,float64,"FRP (MW) of those, last 3 issue days."
+ring2_fire_7d,float64,"Detections in the 16 cells two steps away, last 7 issue days."
+region_mean_fire_3d,float64,"Mean known detections per land cell in the region, last 3 issue days."
+clim_fire_days_year,float64,S-NPP 2012-2017 mean annual fire-days in the cell (pre-study; no leakage).
+clim_fire_days_month,float64,S-NPP 2012-2017 mean fire-days in the cell in the issue calendar month.
+eligible_new_activity,bool,
+eligibility_uncertain,bool,
+label_status,object,
+target_day_firms_status,object,
+target_cloud_pct,float64,POWER (CERES SYN1DEG) daily mean cloud amount on the target day (%). QC ONLY.
+target_cloud_obscured_proxy,bool,target_cloud_pct >= 80. QC ONLY.
+detection_on_issue_day,bool,
+fire_obs_cutoff_utc,object,
+weather_valid_through_utc,object,
+weather_source_lag2,object,POWER source stream for the d-2 weather (MERRA2 historically; GEOSIT live).
+target_nextday_detection,float64,"PRIMARY LABEL: 1 if >=1 qualifying NOAA-20 VIIRS detection (conf n/h, type 0) in the cell on UTC day d+1."
+target_nextday_count,float64,Secondary continuous outcome: qualifying detections on d+1.
+target_nextday_frp,float64,
+in_primary_analysis,bool,"Land cell, eligible (no detection known in prior 7 days), eligibility certain, label ok."
+role,object,dev / test_time / test_space_primary / test_space_secondary / previously_tested_norcal / unused.
+firms_product,object,
+weather_product,object,
+static_products,object,
+dataset_version,object,
+raw_manifest_sha256,object,

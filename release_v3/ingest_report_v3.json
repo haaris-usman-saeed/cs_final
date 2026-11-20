@@ -1,0 +1,274 @@
+{
+  "generated_at_utc": "2026-11-20T05:20:34.108785+00:00",
+  "step": 0.5,
+  "weather_window": [
+    "2018-09-01",
+    "2025-12-31"
+  ],
+  "archives": [
+    {
+      "satellite": "noaa20",
+      "year": 2018,
+      "file": "viirs-jpss1_2018_United_States.csv",
+      "national_rows": 461477,
+      "distinct_days": 275,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2019,
+      "file": "viirs-jpss1_2019_United_States.csv",
+      "national_rows": 451429,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2020,
+      "file": "viirs-jpss1_2020_United_States.csv",
+      "national_rows": 665078,
+      "distinct_days": 366,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2021,
+      "file": "viirs-jpss1_2021_United_States.csv",
+      "national_rows": 670917,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2022,
+      "file": "viirs-jpss1_2022_United_States.csv",
+      "national_rows": 546431,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2023,
+      "file": "viirs-jpss1_2023_United_States.csv",
+      "national_rows": 390873,
+      "distinct_days": 360,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2024,
+      "file": "viirs-jpss1_2024_United_States.csv",
+      "national_rows": 535136,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "noaa20",
+      "year": 2025,
+      "file": "viirs-jpss1_2025_United_States.csv",
+      "national_rows": 485403,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2012,
+      "file": "viirs-snpp_2012_United_States.csv",
+      "national_rows": 536477,
+      "distinct_days": 346,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2013,
+      "file": "viirs-snpp_2013_United_States.csv",
+      "national_rows": 404761,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2014,
+      "file": "viirs-snpp_2014_United_States.csv",
+      "national_rows": 377204,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2015,
+      "file": "viirs-snpp_2015_United_States.csv",
+      "national_rows": 581042,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2016,
+      "file": "viirs-snpp_2016_United_States.csv",
+      "national_rows": 432975,
+      "distinct_days": 366,
+      "versions": [
+        "2"
+      ]
+    },
+    {
+      "satellite": "snpp",
+      "year": 2017,
+      "file": "viirs-snpp_2017_United_States.csv",
+      "national_rows": 596168,
+      "distinct_days": 365,
+      "versions": [
+        "2"
+      ]
+    }
+  ],
+  "firms_day_status_counts": {
+    "ok": 2669,
+    "missing": 6,
+    "suspect": 4
+  },
+  "regions": {
+    "norcal": {
+      "role": "development",
+      "bbox": [
+        -123.5,
+        38.5,
+        -119.5,
+        42.5
+      ],
+      "cells": 64,
+      "land_cells": 64,
+      "land_fraction_min_included": 0.8772,
+      "firms_padded_rows_2018_2025": 600296,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 22.755208333333336
+    },
+    "nrockies": {
+      "role": "development",
+      "bbox": [
+        -117.0,
+        44.0,
+        -113.0,
+        48.0
+      ],
+      "cells": 64,
+      "land_cells": 64,
+      "land_fraction_min_included": 0.8279,
+      "firms_padded_rows_2018_2025": 258479,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 20.864583333333332
+    },
+    "southwest": {
+      "role": "development",
+      "bbox": [
+        -112.0,
+        32.0,
+        -108.0,
+        36.0
+      ],
+      "cells": 64,
+      "land_cells": 64,
+      "land_fraction_min_included": 1.0,
+      "firms_padded_rows_2018_2025": 143109,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 9.138020833333332
+    },
+    "southeast": {
+      "role": "development",
+      "bbox": [
+        -85.0,
+        30.0,
+        -81.0,
+        34.0
+      ],
+      "cells": 64,
+      "land_cells": 61,
+      "land_fraction_min_included": 0.7172,
+      "firms_padded_rows_2018_2025": 266401,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 78.66666666666667
+    },
+    "pnw": {
+      "role": "test_space",
+      "bbox": [
+        -123.0,
+        43.0,
+        -119.0,
+        47.0
+      ],
+      "cells": 64,
+      "land_cells": 64,
+      "land_fraction_min_included": 0.9275,
+      "firms_padded_rows_2018_2025": 333835,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 18.075520833333332
+    },
+    "ozarks": {
+      "role": "test_space",
+      "bbox": [
+        -96.0,
+        34.0,
+        -92.0,
+        38.0
+      ],
+      "cells": 64,
+      "land_cells": 64,
+      "land_fraction_min_included": 1.0,
+      "firms_padded_rows_2018_2025": 238479,
+      "weather_days": 2679,
+      "weather_missing_by_column": {},
+      "power_sources_seen": [
+        "MERRA2,SYN1DEG,POWER"
+      ],
+      "snpp_clim_fire_days_year_mean": 53.828125
+    }
+  },
+  "raw_files": 409,
+  "network_downloads_this_run": 327,
+  "cache_hits_this_run": 92
+}

@@ -1,0 +1,119 @@
+name: Daily inference (research, experimental)
+# Runs only from the default branch. Daily INFERENCE with the frozen v0.3 model; never retrains.
+on:
+  schedule:
+    - cron: '30 2 * * *'     # 02:30 UTC: after NOAA-20's US passes are in the keyless 7-day NRT feed
+  workflow_dispatch:
+permissions:
+  contents: write            # push the append-only state branch
+  issues: write              # failure alerts
+concurrency:
+  group: daily-inference
+  cancel-in-progress: false
+env:
+  STATE_BRANCH: prospective-state
+jobs:
+  daily:
+    # arm64: the frozen model was trained and evaluated on arm64; an x86_64 rebuild is a different, unevaluated model
+    # and is refused by the fingerprint check (docs/OPERATIONS.md).
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+      - run: pip install -e .
+
+      - name: Check out state branch (created on first run)
+        run: |
+          git config user.name  "firerisk-open-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$STATE_BRANCH" >/dev/null; then
+            git fetch origin "$STATE_BRANCH" && git worktree add state "origin/$STATE_BRANCH" -B "$STATE_BRANCH"
+          else
+            git worktree add --detach state && (cd state && git checkout --orphan "$STATE_BRANCH" && git rm -rfq . )
+          fi
+          mkdir -p state/prospective && cp state/prospective/log.jsonl "$RUNNER_TEMP/log_before.jsonl" 2>/dev/null || touch "$RUNNER_TEMP/log_before.jsonl"
+
+      - name: Restore NRT store (Actions cache; rebuilt from the 7-day feed if evicted)
+        uses: actions/cache/restore@v4
+        with:
+          path: state/live
+          key: nrt-store-${{ github.run_id }}
+          restore-keys: nrt-store-
+
+      - name: Daily job
+        id: job
+        env:
+          STATE_DIR: state
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}   # optional; enables NRT backfill
+        run: |
+          set +e
+          scripts/daily_job.sh 2>&1 | tee "$RUNNER_TEMP/daily.log"; rc=${PIPESTATUS[0]}
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Enforce append-only prospective log
+        run: python scripts/check_append_only.py "$RUNNER_TEMP/log_before.jsonl" state/prospective/log.jsonl
+
+      - name: Save NRT store cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state/live
+          key: nrt-store-${{ github.run_id }}
+
+      - name: Commit state (status, prospective log, published files)
+        run: |
+          cd state
+          printf 'live/\nstaging/\n' > .gitignore
+          git add -A
+          git commit -qm "daily $(date -u +%F): rc=${{ steps.job.outputs.rc }}" || echo "nothing to commit"
+          git push origin "HEAD:$STATE_BRANCH"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daily-${{ github.run_id }}
+          path: |
+            state/public/
+            ${{ runner.temp }}/daily.log
+          retention-days: 30
+
+      - name: Failure alert (issue)
+        if: steps.job.outputs.rc != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          reason=$(python -c "import json;s=json.load(open('state/live/live_status.json'));print(s['state']+': '+'; '.join(s.get('reasons',[])))" 2>/dev/null || echo "job crashed (rc=${{ steps.job.outputs.rc }})")
+          url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body=$(printf 'Daily run %s did not publish predictions (safeguard or crash).\n\n**%s**\n\nRun log: %s\n\nNothing new was published; the website flags the previous forecast as stale.' "$(date -u +%FT%TZ)" "$reason" "$url")
+          gh label create live-run-failure --color B60205 --description "Daily inference did not publish" 2>/dev/null || true
+          n=$(gh issue list --label live-run-failure --state open --json number -q '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$body"; else gh issue create --label live-run-failure --title "Daily inference did not publish" --body "$body"; fi
+
+      - name: Fail the workflow when nothing was published (GitHub also e-mails on failure)
+        if: steps.job.outputs.rc != '0'
+        run: exit 1
+
+  pages:
+    # Optional static website from the state branch. Off unless the repository variable PUBLISH_PAGES is 'true'
+    # and GitHub Pages is enabled with "GitHub Actions" as the source.
+    needs: daily
+    if: vars.PUBLISH_PAGES == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: prospective-state
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4

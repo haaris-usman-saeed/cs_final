@@ -11,3 +11,4 @@ logs/
 *.part
 !release/
 *.egg-info/
+output_v3/

@@ -1,0 +1,201 @@
+{
+  "dataset_file": "firerisk_open_multiregion_v0.3.0.parquet",
+  "sha256": "6fba8a1705031f91b969a167a5d1d566bcd3eee0979a89d498b31de03f4568b6",
+  "rows": 973836,
+  "columns": 65,
+  "cells": 381,
+  "regions": [
+    "norcal",
+    "nrockies",
+    "ozarks",
+    "pnw",
+    "southeast",
+    "southwest"
+  ],
+  "in_primary_analysis": 632239,
+  "test_labels_revealed": true,
+  "primary_by_region_and_role": {
+    "norcal": {
+      "dev": {
+        "rows": 82159,
+        "positives": 2850,
+        "prevalence": 0.034688835063717914,
+        "cloud_obscured_share": 0.211894010394479,
+        "issue_day_detection_share_of_positives": 0.2449122807017544
+      },
+      "previously_tested_norcal": {
+        "rows": 31039,
+        "positives": 1119,
+        "prevalence": 0.036051419182319015,
+        "cloud_obscured_share": 0.1966236025645156,
+        "issue_day_detection_share_of_positives": 0.26184092940125114
+      },
+      "unused": {
+        "rows": 1639,
+        "positives": 73,
+        "prevalence": 0.044539353264185476,
+        "cloud_obscured_share": 0.5716900549115315,
+        "issue_day_detection_share_of_positives": 0.136986301369863
+      }
+    },
+    "nrockies": {
+      "dev": {
+        "rows": 97726,
+        "positives": 1765,
+        "prevalence": 0.018060700325399588,
+        "cloud_obscured_share": 0.38974275013814136,
+        "issue_day_detection_share_of_positives": 0.2708215297450425
+      },
+      "test_time": {
+        "rows": 35493,
+        "positives": 824,
+        "prevalence": 0.02321584537796185,
+        "cloud_obscured_share": 0.36432535993012705,
+        "issue_day_detection_share_of_positives": 0.2621359223300971
+      },
+      "unused": {
+        "rows": 2020,
+        "positives": 4,
+        "prevalence": 0.0019801980198019802,
+        "cloud_obscured_share": 0.6024752475247525,
+        "issue_day_detection_share_of_positives": 0.0
+      }
+    },
+    "ozarks": {
+      "test_space_primary": {
+        "rows": 16829,
+        "positives": 1955,
+        "prevalence": 0.11616851862855784,
+        "cloud_obscured_share": 0.2208687384871353,
+        "issue_day_detection_share_of_positives": 0.22710997442455244
+      },
+      "test_space_secondary": {
+        "rows": 51402,
+        "positives": 5149,
+        "prevalence": 0.10017119956421928,
+        "cloud_obscured_share": 0.3010972335706782,
+        "issue_day_detection_share_of_positives": 0.2221790638959021
+      },
+      "unused": {
+        "rows": 1420,
+        "positives": 105,
+        "prevalence": 0.07394366197183098,
+        "cloud_obscured_share": 0.2992957746478873,
+        "issue_day_detection_share_of_positives": 0.20952380952380953
+      }
+    },
+    "pnw": {
+      "test_space_primary": {
+        "rows": 32932,
+        "positives": 1129,
+        "prevalence": 0.03428276448439208,
+        "cloud_obscured_share": 0.31221911818292236,
+        "issue_day_detection_share_of_positives": 0.2329495128432241
+      },
+      "test_space_secondary": {
+        "rows": 90037,
+        "positives": 2646,
+        "prevalence": 0.02938791830025434,
+        "cloud_obscured_share": 0.345302486755445,
+        "issue_day_detection_share_of_positives": 0.21504157218442932
+      },
+      "unused": {
+        "rows": 1920,
+        "positives": 17,
+        "prevalence": 0.008854166666666666,
+        "cloud_obscured_share": 0.765625,
+        "issue_day_detection_share_of_positives": 0.058823529411764705
+      }
+    },
+    "southeast": {
+      "dev": {
+        "rows": 31900,
+        "positives": 4443,
+        "prevalence": 0.13927899686520376,
+        "cloud_obscured_share": 0.27639498432601883,
+        "issue_day_detection_share_of_positives": 0.28426738690074277
+      },
+      "test_time": {
+        "rows": 10234,
+        "positives": 1548,
+        "prevalence": 0.15126050420168066,
+        "cloud_obscured_share": 0.21428571428571427,
+        "issue_day_detection_share_of_positives": 0.29780361757105944
+      },
+      "unused": {
+        "rows": 519,
+        "positives": 117,
+        "prevalence": 0.2254335260115607,
+        "cloud_obscured_share": 0.23892100192678228,
+        "issue_day_detection_share_of_positives": 0.29914529914529914
+      }
+    },
+    "southwest": {
+      "dev": {
+        "rows": 104026,
+        "positives": 1414,
+        "prevalence": 0.013592755657239537,
+        "cloud_obscured_share": 0.12341145482860054,
+        "issue_day_detection_share_of_positives": 0.23196605374823195
+      },
+      "test_time": {
+        "rows": 39019,
+        "positives": 556,
+        "prevalence": 0.014249468207796202,
+        "cloud_obscured_share": 0.0946461980060996,
+        "issue_day_detection_share_of_positives": 0.2392086330935252
+      },
+      "unused": {
+        "rows": 1925,
+        "positives": 23,
+        "prevalence": 0.011948051948051949,
+        "cloud_obscured_share": 0.2909090909090909,
+        "issue_day_detection_share_of_positives": 0.13043478260869565
+      }
+    }
+  },
+  "dev_by_target_year": {
+    "2019": {
+      "rows": 64943,
+      "positives": 2144,
+      "prevalence": 0.03301356574226629,
+      "cloud_obscured_share": 0.2599048396285974,
+      "issue_day_detection_share_of_positives": 0.261660447761194
+    },
+    "2020": {
+      "rows": 64336,
+      "positives": 2204,
+      "prevalence": 0.03425764735140512,
+      "cloud_obscured_share": 0.22660718726684903,
+      "issue_day_detection_share_of_positives": 0.2590744101633394
+    },
+    "2021": {
+      "rows": 62654,
+      "positives": 2289,
+      "prevalence": 0.03653398027260829,
+      "cloud_obscured_share": 0.24209148657707408,
+      "issue_day_detection_share_of_positives": 0.2686762778505898
+    },
+    "2022": {
+      "rows": 64288,
+      "positives": 1889,
+      "prevalence": 0.029383399701343953,
+      "cloud_obscured_share": 0.24082254853160776,
+      "issue_day_detection_share_of_positives": 0.262572789835892
+    },
+    "2023": {
+      "rows": 59590,
+      "positives": 1946,
+      "prevalence": 0.03265648598758181,
+      "cloud_obscured_share": 0.25245846618560164,
+      "issue_day_detection_share_of_positives": 0.2692702980472765
+    }
+  },
+  "row_accounting": {
+    "not_eligible_recent_detection": 330373,
+    "eligibility_uncertain_firms_day": 10173,
+    "label_withheld_firms_target_day": 1051
+  },
+  "feature_missing_rows_dropped_note": "rows with any missing feature are not in the file (no imputation)",
+  "static_source_mask_boxes": 5327
+}

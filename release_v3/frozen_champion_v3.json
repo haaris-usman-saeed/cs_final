@@ -1,0 +1,226 @@
+{
+  "status": "experimental_research_model",
+  "version": "0.3.0",
+  "frozen_at_utc": "2026-11-20T05:34:07.361476+00:00",
+  "selection_rule": "pooled OOF AP over CV folds 2021-2023; among candidates within 1 bootstrap SE of the best, highest leave-one-region-out AP; tie -> lower cross-fitted calibrated Brier",
+  "best_oof_ap": 0.15947765476929274,
+  "one_se": 0.01572623166247041,
+  "champion": {
+    "key": "extra_trees|B_plus_fire_history",
+    "model": "extra_trees",
+    "feature_set": "B_plus_fire_history",
+    "params": {
+      "min_samples_leaf": 50
+    },
+    "features": [
+      "doy_sin",
+      "doy_cos",
+      "t2m_lag2",
+      "t2m_max_lag2",
+      "rh2m_lag2",
+      "vpd_lag2",
+      "ws10m_lag2",
+      "ws10m_max_lag2",
+      "rain_3d_lag2",
+      "rain_7d_lag2",
+      "rain_30d_lag2",
+      "rain_90d_lag2",
+      "dry_days_lag2",
+      "gwettop_lag2",
+      "gwetroot_lag2",
+      "gwetroot_chg30_lag2",
+      "lc_tree",
+      "lc_shrub",
+      "lc_grass",
+      "lc_crop",
+      "lc_built",
+      "lc_bare",
+      "lc_wetland",
+      "elev_mean_m",
+      "elev_std_m",
+      "neighbor_fire_3d",
+      "neighbor_fire_7d",
+      "neighbor_frp_3d",
+      "ring2_fire_7d",
+      "region_mean_fire_3d",
+      "clim_fire_days_year",
+      "clim_fire_days_month"
+    ],
+    "oof_ap_pooled": 0.15947765476929274,
+    "loro_ap_pooled": 0.16835415860184516
+  },
+  "ablation_family": "extra_trees",
+  "ablation_pair": {
+    "A_no_fire_info": "extra_trees|A_no_fire_info",
+    "B_plus_fire_history": "extra_trees|B_plus_fire_history"
+  },
+  "validation_matched_ablation_bootstrap": {
+    "A_no_fire_info": {
+      "ap_ci95": [
+        0.13193362338589804,
+        0.1888762872945065
+      ],
+      "ap_se": 0.014278575899799839
+    },
+    "B_plus_fire_history": {
+      "ap_ci95": [
+        0.13200221824195052,
+        0.19299025031019384
+      ],
+      "ap_se": 0.015424489711943509
+    },
+    "delta_ap[B_plus_fire_history - A_no_fire_info]": {
+      "ci95": [
+        -0.0034424644165347634,
+        0.007983786199294008
+      ],
+      "share_gt_0": 0.698
+    },
+    "_clusters": 142,
+    "_replicates": 1000
+  },
+  "threshold_calibrated_f1_2023": 0.13043478260869565,
+  "cv_fold_summary": {
+    "2021": {
+      "train_rows": 129279,
+      "train_pos": 4348,
+      "val_rows": 56867,
+      "val_pos": 2099
+    },
+    "2022": {
+      "train_rows": 191933,
+      "train_pos": 6637,
+      "val_rows": 58549,
+      "val_pos": 1667
+    },
+    "2023": {
+      "train_rows": 256221,
+      "train_pos": 8526,
+      "val_rows": 53486,
+      "val_pos": 1813
+    }
+  },
+  "supported_regions": {
+    "norcal": {
+      "bbox": [
+        -123.5,
+        38.5,
+        -119.5,
+        42.5
+      ],
+      "role": "development"
+    },
+    "nrockies": {
+      "bbox": [
+        -117.0,
+        44.0,
+        -113.0,
+        48.0
+      ],
+      "role": "development"
+    },
+    "southwest": {
+      "bbox": [
+        -112.0,
+        32.0,
+        -108.0,
+        36.0
+      ],
+      "role": "development"
+    },
+    "southeast": {
+      "bbox": [
+        -85.0,
+        30.0,
+        -81.0,
+        34.0
+      ],
+      "role": "development"
+    },
+    "pnw": {
+      "bbox": [
+        -123.0,
+        43.0,
+        -119.0,
+        47.0
+      ],
+      "role": "test_space"
+    },
+    "ozarks": {
+      "bbox": [
+        -96.0,
+        34.0,
+        -92.0,
+        38.0
+      ],
+      "role": "test_space"
+    }
+  },
+  "dev_dataset_sha256": "a0749948686545c00585dc99e1ab20d9440d14d1247dcbef33df768075fc6171",
+  "test_evaluated": true,
+  "test_summary": {
+    "test_time": {
+      "n": 84746,
+      "positives": 2928,
+      "prevalence": 0.03455030325915087,
+      "average_precision": 0.18563119502654407,
+      "roc_auc": 0.8396304152913296,
+      "brier": 0.03049652992349193,
+      "threshold": 0.13043478260869565,
+      "accuracy": 0.9227810162131546,
+      "balanced_accuracy": 0.6833902435994484,
+      "precision": 0.20418848167539266,
+      "recall": 0.4262295081967213,
+      "f1": 0.2761061946902655,
+      "confusion_matrix": {
+        "tn": 76954,
+        "fp": 4864,
+        "fn": 1680,
+        "tp": 1248
+      },
+      "single_class_split": false
+    },
+    "test_space_primary": {
+      "n": 49761,
+      "positives": 3084,
+      "prevalence": 0.061976246458069574,
+      "average_precision": 0.1298410255942653,
+      "roc_auc": 0.7264352415350387,
+      "brier": 0.05594591876379072,
+      "threshold": 0.13043478260869565,
+      "accuracy": 0.7879463837141537,
+      "balanced_accuracy": 0.6338016815453899,
+      "precision": 0.1371939370384765,
+      "recall": 0.4578469520103761,
+      "f1": 0.2111244019138756,
+      "confusion_matrix": {
+        "tn": 37797,
+        "fp": 8880,
+        "fn": 1672,
+        "tp": 1412
+      },
+      "single_class_split": false
+    },
+    "test_space_secondary": {
+      "n": 141439,
+      "positives": 7795,
+      "prevalence": 0.05511209779480907,
+      "average_precision": 0.12045501888041238,
+      "roc_auc": 0.7339921629172341,
+      "brier": 0.05040367723330254,
+      "threshold": 0.13043478260869565,
+      "accuracy": 0.7712441405835732,
+      "balanced_accuracy": 0.6410861472435678,
+      "precision": 0.11950796306624527,
+      "recall": 0.49480436177036563,
+      "f1": 0.19251790661109586,
+      "confusion_matrix": {
+        "tn": 105227,
+        "fp": 28417,
+        "fn": 3938,
+        "tp": 3857
+      },
+      "single_class_split": false
+    }
+  }
+}

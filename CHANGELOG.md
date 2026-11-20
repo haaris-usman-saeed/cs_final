@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.3.1 — 2026-11-20: platform reliability
+* `fireaq/nrt_vs_sp.py` + `nrt-vs-sp`: NOAA-20 NRT vs standard-processing comparison. It covers coverage per day and overpass,
+  one-to-one matching (≤ 10 min, ≤ 750 m), timing, geolocation offsets, a confidence transition matrix, FRP ratio and v0.3
+  cell-day label agreement. It is tested on planted differences.
+  **Status: BLOCKED.** No keyless period has both products: the LANCE NRT archive needs Earthdata login, the FIRMS API needs a MAP_KEY,
+  and the 2026 SP yearly archive is not yet published.
+* `fireaq/deploy.py` + `rebuild-champion`: deterministic rebuild of the frozen model from the committed dataset, verified
+  against a 2,000-row prediction fingerprint (`release_v3/model_fingerprint_v3.json`). Measured max |Δp| ≤ 1.5e-14.
+* `fireaq/prospective.py` + `prospective-log` / `prospective-report`:
+  * append-only, hash-chained prediction/outcome log;
+  * immutable past predictions;
+  * coverage-gated NRT outcomes (gaps are "unresolvable", never negative);
+  * no accuracy until 60 issue days and 50 positives.
+* `scripts/daily_job.sh`: safeguarded daily pipeline with exit codes, one forecast per issue day, and output validation. Status is always
+  published, predictions only on success. It is tested locally on real feeds (refusal and success paths).
+* `.github/workflows/ci.yml` (tests on 3.11/3.12, model fingerprint, live dry run) and `.github/workflows/daily.yml`
+  (scheduled, state branch, Actions-cached NRT store, append-only enforcement, failure issue + e-mail, optional Pages).
+* Live: a missing static-source mask now refuses publication. Inputs are read from `release_v3/live_inputs/`, so no ingest is needed.
+* Website/API: `/api/prospective`, a limitations section, a live-accuracy panel ("not available"), and a static-hosting fallback with
+  browser-side staleness.
+* `docs/OPERATIONS.md`: deployment, measured costs, licences, clean-checkout reproduction record.
+* Tests: 34 → 38.
+* CI found that an **x86_64 rebuild of the frozen model differs** from the arm64-trained model (max |Δp| 0.022), and the fingerprint
+  check refused it. Reproduced with Rosetta, so the cause is architecture. The strict check and the daily job now run on arm64 macos-15; an
+  x86 CI job documents the difference.
+* `docs/REPRODUCIBILITY_RUN_2026-11-20.md`: a full clean-clone reproduction (arm64). The dataset content, leaderboard and test APs
+  are identical.
+
+
+## 0.3.0 — 2026-11-20: multi-region dataset, audited methodology, untouched test, hardened live pipeline
+* `docs/AUDIT_v0.2.md`: 14 findings in v0.2. Key ones: single-year selection, coordinates as features, a confounded fire ablation,
+  and a climatology baseline that cannot be used in new regions.
+* `docs/PREREGISTRATION_v0.3.md`, committed before any new data, with a change log.
+* New keyless sources: NASA POWER (weather and soil wetness, the same source for training and live), ESA WorldCover 2020,
+  Copernicus DEM GLO-90 COGs, FIRMS S-NPP 2012–2017 climatology. Modules: `fireaq/regions.py`, `ingest3.py`, `features_v3.py`,
+  `dataset3.py`.
+* 6 regions: 4 for development, 2 untouched test regions. Dataset `firerisk_open_multiregion_v0.3.0.parquet` (973,836
+  cell-days, deterministic).
+* `fireaq/experiment_v3.py`:
+  * rolling-origin CV, 1-SE rule, then leave-one-region-out selection;
+  * 13 candidates including XGBoost, matched A/B feature sets;
+  * cross-fitted calibration checks, event-level metrics, week- and cell-cluster bootstrap CIs;
+  * one-time test guard with a dev-data hash;
+  * secondary regression on log1p counts.
+* `fireaq/live_v3.py`: feed health checks for 4 satellites, first-seen NRT store, latency upper bounds, gap detection,
+  stale/history/weather refusals, multi-region scoring, uncertainty and freshness metadata, explicit unscored reasons.
+* API: `/api/regions`, region and cell filters, staleness by issue date, v0.3 model and test endpoint. The website gets region tabs and
+  per-region test skill.
+* `scripts/macos_xgboost_libomp.sh`: venv-local XGBoost OpenMP fix (no system changes).
+* `fireaq/vintage_v3.py` (`vintage-check-v3`): measures the POWER MERRA-2 → GEOS-IT live-weather shift. Streams switch on 2026-10-02.
+  It uses an ERA5 double difference with a year-to-year null, over 96 cells, and propagates the shift through the frozen model.
+* Tests: 23 → 34 (synthetic only).
+
+
 ## 0.2.0 — 2026-11-19/20: audit fixes, real-data pilot, model comparison
 
 ### Audit of v0.1 (bundle as received, commit `89ae3a5`): 9/9 synthetic tests passed. Confirmed defects

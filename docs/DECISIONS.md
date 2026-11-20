@@ -39,3 +39,20 @@ champion has AP 0.085, climatology 0.076 and the base rate is 0.036. The gain ov
 time-clustered uncertainty, and fire-history features add no measurable skill over weather-only. **Gate 3
 ("outperform climatology with reasonable uncertainty") is NOT met.** No operational claims. Live publishing stays
 experimental, and it is blocked until 30 days of NRT history exist.
+
+## Outcome of v0.3 (2026-11-20)
+
+The one-time untouched test is in `release_v3/RESULTS_v3.md`. In 3 regions over new years, the model beats a pre-2018 fire
+climatology with CIs excluding zero (AP 0.186 vs 0.121). In 2 never-used regions the margin is small (AP 0.130 vs 0.115) and
+not significant in the Ozarks alone. Fire history helps transfer to new regions but not prediction inside known ones.
+
+**Gate 3 is partly met:** temporal and geographic hold-outs beat climatology with uncertainty, but by a small
+margin geographically. **Gate 4 is partly met:** the live weather vintage (POWER GEOS-IT vs MERRA-2) was measured on 2026-11-20. Several
+variables shift (RH −3.9 pts, wind −0.7 m/s), but the frozen model's decisions agree on 99.4% of test rows under those
+shifts. NRT vs standard-processing FIRMS is still unmeasured. No operational claims.
+
+## Platform status (2026-11-20, v0.3.1)
+* **Live predictive accuracy: NOT CLAIMED.** The prospective log starts with the first scheduled run after merge. Accuracy is reported only
+  after 60 resolved issue days and 50 observed detections, and labelled provisional (NRT outcomes) until a standard-processing re-check.
+* **NRT vs SP FIRMS: NOT MEASURED** (needs a FIRMS MAP_KEY or the 2026 SP archive). Gate 4 stays partly met.
+* The pipeline is reproducible from a clean checkout (dataset content identical; see `docs/OPERATIONS.md`).

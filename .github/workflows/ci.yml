@@ -1,0 +1,84 @@
+name: CI
+on:
+  push:
+    branches: [main, 'dev/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  tests:
+    name: tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q -W ignore
+
+  frozen-model-reproducibility:
+    # Strict check on the deployment platform: rebuild the frozen v0.3 champion on arm64 (where it was trained and
+    # evaluated) and require its prediction fingerprint to match within 1e-9.
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+      - run: pip install -e .
+      - run: python -c "import platform; assert platform.machine() == 'arm64', platform.machine()"
+      - run: python -m fireaq rebuild-champion --out "$RUNNER_TEMP/model"
+
+  x86-rebuild-difference:
+    # Documents (does not hide) that an x86_64 rebuild is a DIFFERENT model: tree construction is not bitwise
+    # identical across CPU architectures. Passes only if the rebuild is refused, i.e. the safeguard works.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -e .
+      - run: |
+          if python -m fireaq rebuild-champion --out "$RUNNER_TEMP/model"; then
+            echo "x86 rebuild matched the arm64 fingerprint (would be fine, but update docs/OPERATIONS.md)"; else
+            echo "x86 rebuild refused as expected: deploy only on arm64 (see docs/OPERATIONS.md)"; fi
+
+  live-dry-run:
+    # End-to-end daily job on real feeds for one region, publishing nothing. A safeguard refusal (exit 3) is acceptable.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+      - run: pip install -e .
+      - name: daily job (dry run, norcal only)
+        env:
+          STATE_DIR: ${{ runner.temp }}/state
+          DRY_RUN: '1'
+          REGIONS: norcal
+        run: |
+          set +e
+          scripts/daily_job.sh; rc=$?
+          echo "exit code $rc"; cat "$STATE_DIR/live/live_status.json" || true
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 3 ]; then exit "$rc"; fi
+          test ! -f "$STATE_DIR/public/data/predictions.json"   # dry run must never publish

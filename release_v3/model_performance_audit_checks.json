@@ -1,0 +1,29 @@
+{
+ "consistency_issues": [],
+ "fold2023_reconstruction_max_abs_diff": 1.6653345369377348e-16,
+ "fold2023_reconstruction_per_model": {
+  "extra_trees|B_plus_fire_history": 1.3877787807814457e-16,
+  "extra_trees|A_no_fire_info": 1.1102230246251565e-16,
+  "random_forest|B_plus_fire_history": 1.6653345369377348e-16,
+  "random_forest|A_no_fire_info": 1.6653345369377348e-16,
+  "xgboost|B_plus_fire_history": 0.0,
+  "xgboost|A_no_fire_info": 0.0,
+  "logistic_l2|B_plus_fire_history": 0.0,
+  "hist_gradient_boosting|B_plus_fire_history": 0.0,
+  "hist_gradient_boosting|A_no_fire_info": 0.0,
+  "mlp|A_no_fire_info": 0.0,
+  "decision_tree|B_plus_fire_history": 0.0,
+  "mlp|B_plus_fire_history": 0.0,
+  "decision_tree|A_no_fire_info": 0.0,
+  "logistic_l2|A_no_fire_info": 0.0,
+  "climatology_hist_snpp|n/a": 0.0,
+  "climatology_train_cell_month|n/a": 0.0,
+  "gaussian_nb|B_plus_fire_history": 0.0,
+  "gaussian_nb|A_no_fire_info": 0.0,
+  "dummy_stratified|n/a": 0.0,
+  "dummy_most_frequent|n/a": 0.0,
+  "dummy_prior|n/a": 0.0
+ },
+ "platform": "arm64",
+ "champion": "extra_trees|B_plus_fire_history"
+}

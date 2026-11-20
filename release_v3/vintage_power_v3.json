@@ -1,0 +1,293 @@
+{
+  "generated_at_utc": "2026-11-20T07:14:29.938105+00:00",
+  "power_stream_switch_date": "2026-10-02",
+  "windows": {
+    "merra2_2024": [
+      "2024-10-02",
+      "2024-11-14"
+    ],
+    "merra2_2025": [
+      "2025-10-02",
+      "2025-11-14"
+    ],
+    "geosit_2026": [
+      "2026-10-02",
+      "2026-11-14"
+    ]
+  },
+  "power_sources_request_header": {
+    "merra2_2024": [
+      "MERRA2,GEOSIT,SYN1DEG,POWER"
+    ],
+    "merra2_2025": [
+      "MERRA2,GEOSIT,SYN1DEG,POWER"
+    ],
+    "geosit_2026": [
+      "MERRA2,GEOSIT,SYN1DEG,POWER"
+    ]
+  },
+  "per_day_stream_verification": "POWER reports sources per request, not per day, so the header above lists every stream in the 2024-2026 request. The per-day stream was verified by single-day probes on 2026-11-20: 2026-10-01 MERRA2, 2026-10-02..11-19 GEOSIT, all sampled 2025 months MERRA2.",
+  "caveats": [
+    "autumn window only (Oct 2 - Nov 14); shifts may differ in the summer fire season",
+    "mean additive shifts only; GEOS-IT day-to-day correlation with ERA5 is reported per window",
+    "dry_days and gwetroot_chg30 were not perturbed in the sensitivity run"
+  ],
+  "cells": 96,
+  "variable_shift_geosit_minus_merra2": {
+    "t2m": {
+      "shift_mean": 0.6838281250000001,
+      "shift_ci95_cells": [
+        0.5010340317234848,
+        0.8826778823390152
+      ],
+      "null_mean_2025_minus_2024": -0.08986268939393939,
+      "null_ci95_cells": [
+        -0.21181705729166664,
+        0.03498366477272712
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": 1.5963,
+        "nrockies": 0.8107,
+        "southwest": -0.3276,
+        "southeast": -0.294,
+        "pnw": 1.6448,
+        "ozarks": 0.6727
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.967,
+        "merra2_2025": 0.922,
+        "geosit_2026": 0.972
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "t2m_max": {
+      "shift_mean": -0.4283433260658915,
+      "shift_ci95_cells": [
+        -0.6155006964631783,
+        -0.2377739392012421
+      ],
+      "null_mean_2025_minus_2024": 0.284609375,
+      "null_ci95_cells": [
+        0.1297547940340909,
+        0.4446145241477272
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": -0.1158,
+        "nrockies": -0.1351,
+        "southwest": -0.4704,
+        "southeast": -1.759,
+        "pnw": 0.6196,
+        "ozarks": -0.7094
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.956,
+        "merra2_2025": 0.92,
+        "geosit_2026": 0.968
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "rh2m": {
+      "shift_mean": -3.9439275568181813,
+      "shift_ci95_cells": [
+        -4.852807498816288,
+        -3.061971235795456
+      ],
+      "null_mean_2025_minus_2024": 0.2042850378787879,
+      "null_ci95_cells": [
+        -0.6690071614583332,
+        1.0750751065340904
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": -5.3294,
+        "nrockies": -6.9359,
+        "southwest": -2.739,
+        "southeast": 1.8319,
+        "pnw": -5.4522,
+        "ozarks": -5.039
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.883,
+        "merra2_2025": 0.859,
+        "geosit_2026": 0.899
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "ws10m": {
+      "shift_mean": -0.7083712121212122,
+      "shift_ci95_cells": [
+        -0.7933990293560605,
+        -0.6264674183238637
+      ],
+      "null_mean_2025_minus_2024": 0.014389204545454537,
+      "null_ci95_cells": [
+        -0.008082386363636363,
+        0.037927379261363636
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": -0.7597,
+        "nrockies": -0.5479,
+        "southwest": -0.7193,
+        "southeast": -1.1063,
+        "pnw": -0.6944,
+        "ozarks": -0.4227
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.892,
+        "merra2_2025": 0.893,
+        "geosit_2026": 0.878
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "ws10m_max": {
+      "shift_mean": -1.1402935606060607,
+      "shift_ci95_cells": [
+        -1.2851740352746213,
+        -0.9999815636837123
+      ],
+      "null_mean_2025_minus_2024": 0.023120265151515152,
+      "null_ci95_cells": [
+        -0.012651633522727265,
+        0.057470584753787864
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": -1.3239,
+        "nrockies": -0.8622,
+        "southwest": -1.1453,
+        "southeast": -1.6491,
+        "pnw": -1.187,
+        "ozarks": -0.6743
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.848,
+        "merra2_2025": 0.852,
+        "geosit_2026": 0.818
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "precip_mm": {
+      "shift_mean": -0.004258996212121215,
+      "shift_ci95_cells": [
+        -0.1772675189393939,
+        0.16250171638257557
+      ],
+      "null_mean_2025_minus_2024": -0.2733901515151515,
+      "null_ci95_cells": [
+        -0.4353635771780303,
+        -0.11964902935606077
+      ],
+      "shift_abs_exceeds_null_abs": false,
+      "shift_by_region": {
+        "norcal": 0.1593,
+        "nrockies": 0.1318,
+        "southwest": -0.4106,
+        "southeast": 0.4766,
+        "pnw": -0.3016,
+        "ozarks": -0.081
+      },
+      "mean_corr_with_era5_by_window": {
+        "merra2_2024": 0.885,
+        "merra2_2025": 0.867,
+        "geosit_2026": 0.867
+      },
+      "method": "double difference vs ERA5 (POWER units)"
+    },
+    "gwettop": {
+      "shift_mean": -0.06218853386200196,
+      "shift_ci95_cells": [
+        -0.08034454648154482,
+        -0.044007933970135
+      ],
+      "null_mean_2025_minus_2024": -0.012541426550697564,
+      "null_ci95_cells": [
+        -0.03032820949818686,
+        0.004563774253020197
+      ],
+      "shift_abs_exceeds_null_abs": true,
+      "shift_by_region": {
+        "norcal": -0.0198,
+        "nrockies": -0.0077,
+        "southwest": -0.0887,
+        "southeast": -0.0888,
+        "pnw": -0.0107,
+        "ozarks": -0.1574
+      },
+      "mean_corr_with_era5_by_window": null,
+      "method": "residual from per-cell linear map POWER~ERA5 fitted on MERRA-2 2024 (units: POWER soil wetness)"
+    },
+    "gwetroot": {
+      "shift_mean": 0.01811914253915683,
+      "shift_ci95_cells": [
+        -0.00767052553459327,
+        0.04843068604268911
+      ],
+      "null_mean_2025_minus_2024": 0.04607442970766107,
+      "null_ci95_cells": [
+        0.022539566121557005,
+        0.07265694358662012
+      ],
+      "shift_abs_exceeds_null_abs": false,
+      "shift_by_region": {
+        "norcal": -0.0513,
+        "nrockies": 0.0544,
+        "southwest": 0.0552,
+        "southeast": -0.0305,
+        "pnw": 0.0973,
+        "ozarks": -0.0163
+      },
+      "mean_corr_with_era5_by_window": null,
+      "method": "residual from per-cell linear map POWER~ERA5 fitted on MERRA-2 2024 (units: POWER soil wetness)"
+    }
+  },
+  "precip_total_ratio_power_over_era5": {
+    "geosit_2026": 0.987351469136223,
+    "merra2_2024": 1.0566541793490987,
+    "merra2_2025": 0.9294967053061912
+  },
+  "model_sensitivity_on_test_rows": {
+    "rows": 134507,
+    "precip_ratio_applied": 0.994236114450675,
+    "mean_abs_prob_change": 0.0017229021122298362,
+    "p95_abs_prob_change": 0.009632901599660612,
+    "mean_prob_before_after": [
+      0.046563837501299256,
+      0.04611685821386115
+    ],
+    "threshold_decision_agreement": 0.9936583226151798,
+    "alerts_before_after": [
+      16404,
+      15769
+    ],
+    "ap_before_after": {
+      "all": [
+        0.15982454758911888,
+        0.16029189340397748
+      ],
+      "nrockies": [
+        0.0746165081771496,
+        0.07445795891610855
+      ],
+      "southwest": [
+        0.0429049158675391,
+        0.043487059213640634
+      ],
+      "southeast": [
+        0.2638100973762108,
+        0.26482958987348904
+      ],
+      "pnw": [
+        0.07139878299259333,
+        0.07203869237846308
+      ],
+      "ozarks": [
+        0.14898893305082023,
+        0.14911258335898342
+      ]
+    },
+    "note": "region-mean additive shifts (precip multiplicative) applied to the test rows; dry_days and gwetroot_chg30 left unchanged"
+  }
+}
