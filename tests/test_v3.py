@@ -179,3 +179,24 @@ def test_api_marks_yesterdays_issue_as_stale(tmp_path, monkeypatch):
     monkeypatch.setenv('FIRERISK_PREDICTIONS', str(p))
     body = TestClient(server.app).get('/api/predictions').json()
     assert body['stale'] is True and 'not today' in body['stale_reason']
+
+
+def test_power_vintage_double_difference_recovers_planted_shift():
+    from fireaq.vintage_v3 import WINDOWS, compute_shifts
+    rng = np.random.default_rng(0)
+    rows = []
+    for c in range(12):
+        for w, (a, b) in WINDOWS.items():
+            for d in pd.date_range(a, b):
+                e = 10 + 5 * rng.normal()
+                sm = 0.2 + 0.05 * rng.random()
+                bias = 1.0 if w == 'geosit_2026' else 0.0          # planted +1.0 C GEOS-IT shift in t2m only
+                rows.append({'cell_key': f'r:{c}', 'region': 'norcal', 'window': w, 'date': str(d.date()),
+                             'power_sources': 'X', 't2m': e + 0.3 + bias + 0.1 * rng.normal(), 'era5_t2m': e,
+                             't2m_max': e + 5, 'era5_t2m_max': e + 5, 'rh2m': 50.0, 'era5_rh': 50.0, 'ws10m': 2.0,
+                             'era5_ws': 2.0, 'ws10m_max': 4.0, 'era5_ws_max': 4.0, 'precip_mm': 1.0, 'era5_precip': 1.0,
+                             'gwettop': 0.1 + 2 * sm, 'era5_sm_top': sm, 'gwetroot': 0.1 + 2 * sm, 'era5_sm_root': sm})
+    summary, ratio, pc = compute_shifts(pd.DataFrame(rows), log=lambda *_: None)
+    assert summary['t2m']['shift_mean'] == pytest.approx(1.0, abs=0.05)
+    assert abs(summary['t2m']['null_mean_2025_minus_2024']) < 0.05
+    assert abs(summary['gwetroot']['shift_mean']) < 0.01 and abs(summary['rh2m']['shift_mean']) < 1e-9

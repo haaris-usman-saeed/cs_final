@@ -47,5 +47,6 @@ climatology with CIs excluding zero (AP 0.186 vs 0.121). In 2 never-used regions
 not significant in the Ozarks alone. Fire history helps transfer to new regions but not prediction inside known ones.
 
 **Gate 3 is partly met:** temporal and geographic hold-outs beat climatology with uncertainty, but by a small
-margin geographically. **Gate 4 is NOT met:** live weather (GEOS-IT) and NRT fire inputs are not validated against the training
-vintages. No operational claims.
+margin geographically. **Gate 4 is partly met:** the live weather vintage (POWER GEOS-IT vs MERRA-2) was measured on 2026-11-20. Several
+variables shift (RH −3.9 pts, wind −0.7 m/s), but the frozen model's decisions agree on 99.4% of test rows under those
+shifts. NRT vs standard-processing FIRMS is still unmeasured. No operational claims.

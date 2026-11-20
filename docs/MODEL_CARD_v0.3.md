@@ -80,8 +80,21 @@ On NorCal 2024–25, v0.2 scored AP 0.085 and v0.3 scores 0.094. That set had al
 * The secondary continuous target (log1p detection count) has little skill: test R² is 0.057 at best (random forest, T-time) and ≤ 0.02
   in unseen regions. It is shown for completeness, not as a usable model.
 * **Live inputs differ from training inputs.** Live uses NRT FIRMS without `type` (a static-source mask is applied instead) and
-  POWER weather from **GEOS-IT** rather than MERRA-2 for recent days. The v0.2 vintage check measured how the fire and ERA5
-  inputs differ. The MERRA-2→GEOS-IT shift is **not yet measured**.
+  POWER weather from **GEOS-IT** (from 2026-10-02) rather than MERRA-2.
+  * **Measured** in `release_v3/vintage_power_v3.json` with ERA5 as a bridge, 96 cells, Oct 2–Nov 14 2026 vs the same dates in 2024/25.
+    Shifts beyond the year-to-year null:
+    * RH **−3.9 points** (CI −4.9 to −3.1);
+    * mean wind **−0.71 m/s** and max wind **−1.14 m/s**;
+    * T2M **+0.68 °C**, region-dependent: +1.6 in NorCal/PNW, −0.3 in the Southwest/Southeast;
+    * surface soil wetness **−0.06**.
+
+    No clear shift in precipitation or root-zone wetness.
+  * **Effect on the frozen model:** applying these shifts to all 134,507 untouched-test rows changes probabilities by 0.0017 on average
+    (95th percentile 0.0096). 99.4% of alert decisions are unchanged, alerts fall 3.9%, and AP moves from 0.1598 to 0.1603. **The model is
+    insensitive to this shift.** That is because weather is a small part of its signal next to fire climatology, terrain and season.
+    So no bias correction is applied.
+  * This only covers an autumn window and mean shifts, so it should be repeated in the 2027 fire season.
+  * Standard-processing vs NRT FIRMS detection differences remain **unmeasured**: that needs a MAP_KEY or prospective collection.
 * Supported area: only the 6 listed 4°×4° regions. The model refuses anywhere else.
 
 ## Intended use

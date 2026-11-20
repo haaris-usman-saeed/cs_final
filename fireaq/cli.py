@@ -297,6 +297,9 @@ def main(argv=None):
     t3 = sub.add_parser('evaluate-test-v3', help='v0.3 ONE-TIME untouched test')
     t3.add_argument('--data', default='data/v03/dataset/firerisk_open_multiregion_v0.3.0.parquet')
     t3.add_argument('--out', default='output_v3')
+    v3 = sub.add_parser('vintage-check-v3', help='v0.3: MERRA-2 vs GEOS-IT POWER weather shift (ERA5 bridge) + model sensitivity')
+    v3.add_argument('--root', default='data/v03')
+    v3.add_argument('--out', default='output_v3')
     l3 = sub.add_parser('predict-live', help='v0.3: score today\'s 00:00 UTC issue in all supported regions')
     l3.add_argument('--model', default='output_v3/model_v3.joblib')
     l3.add_argument('--predictions', default='output_v3/predictions.json')
@@ -307,7 +310,13 @@ def main(argv=None):
      'train': experiment, 'evaluate-test': evaluate_test, 'vintage-check': vintage_check,
      'predict-live-v02': predict_live, 'ingest-v3': ingest_v3_cmd, 'build-v3': build_v3_cmd,
      'experiment-v3': experiment_v3_cmd, 'evaluate-test-v3': evaluate_test_v3_cmd,
-     'predict-live': predict_live_v3_cmd}[args.command](args)
+     'predict-live': predict_live_v3_cmd, 'vintage-check-v3': vintage_v3_cmd}[args.command](args)
+
+
+def vintage_v3_cmd(args):
+    from .vintage_v3 import run_power_vintage_check
+    r = run_power_vintage_check(Path(args.root), Path(args.out))
+    print(json.dumps(r['model_sensitivity_on_test_rows'], indent=2))
 
 
 def ingest_v3_cmd(args):

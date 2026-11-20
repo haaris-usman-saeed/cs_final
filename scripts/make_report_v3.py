@@ -153,6 +153,28 @@ def main():
           table(test['regression_log1p_count_test'], ['model', 'test_set', 'test_MAE', 'test_MSE', 'test_RMSE', 'test_R2']), '',
           '## 5. Champion permutation importance (2023 validation, AP drop)', '',
           table(imp.to_dict(orient='records'), ['feature', 'perm_importance_val2023_ap_mean', 'perm_importance_val2023_ap_std']), '']
+    vp = out / 'vintage_power_v3.json'
+    if vp.exists():
+        v = json.loads(vp.read_text())
+        L += ['## 6. Live-weather vintage: POWER GEOS-IT (live) vs MERRA-2 (training)', '',
+              f"POWER switches streams on {v['power_stream_switch_date']}. {v['per_day_stream_verification']} "
+              f"Shift = (GEOS-IT − ERA5, Oct 2–Nov 14 2026) − (MERRA-2 − ERA5, same dates 2024/2025) over {v['cells']} cells. "
+              'Null = the same calculation between the two MERRA-2 years (no stream change).', '',
+              table([{'variable': k, 'shift': x['shift_mean'], 'shift_ci': ci(x['shift_ci95_cells']),
+                      'null': x['null_mean_2025_minus_2024'], 'null_ci': ci(x['null_ci95_cells']),
+                      'beyond_null': x['shift_abs_exceeds_null_abs'],
+                      'by_region': ', '.join(f'{r} {y:+.2f}' for r, y in x['shift_by_region'].items())}
+                     for k, x in v['variable_shift_geosit_minus_merra2'].items()],
+                    ['variable', 'shift', 'shift_ci', 'null', 'null_ci', 'beyond_null', 'by_region'],
+                    ['variable', 'shift', 'shift 95% CI', 'null', 'null 95% CI', '|shift| > |null|', 'shift by region']), '',
+              'Read a shift as real only when its CI excludes zero AND it clearly exceeds the null: RH, mean/max wind, '
+              'T2M and surface soil wetness qualify; T2M_MAX does not (its null is itself non-zero); precipitation and '
+              'root-zone wetness show no shift.', '',
+              'Frozen model sensitivity (region-mean shifts applied to the 134,507 untouched-test rows; no refit):', '',
+              '```json', json.dumps(v['model_sensitivity_on_test_rows'], indent=1), '```', '',
+              f"Caveats: {'; '.join(v['caveats'])}.", '']
+        for src in [vp, out / 'vintage_power_per_cell_v3.csv']:
+            shutil.copy2(src, rel / src.name)
     (rel / 'RESULTS_v3.md').write_text('\n'.join(L) + '\n')
     for src, dst in [(data / 'dataset' / cov['dataset_file'], cov['dataset_file']),
                      (data / 'dataset' / 'data_dictionary_v3.csv', 'data_dictionary_v3.csv'),

@@ -20,7 +20,9 @@
 * API: `/api/regions`, region and cell filters, staleness by issue date, v0.3 model and test endpoint. The website gets region tabs and
   per-region test skill.
 * `scripts/macos_xgboost_libomp.sh`: venv-local XGBoost OpenMP fix (no system changes).
-* Tests: 23 → 33 (synthetic only).
+* `fireaq/vintage_v3.py` (`vintage-check-v3`): measures the POWER MERRA-2 → GEOS-IT live-weather shift. Streams switch on 2026-10-02.
+  It uses an ERA5 double difference with a year-to-year null, over 96 cells, and propagates the shift through the frozen model.
+* Tests: 23 → 34 (synthetic only).
 
 
 ## 0.2.0 — 2026-11-19/20: audit fixes, real-data pilot, model comparison

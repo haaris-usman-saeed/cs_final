@@ -385,3 +385,69 @@ Fire-history ablation per region (B − A):
 | ws10m_lag2 | -0.0001 | 0.0002 |
 | gwetroot_chg30_lag2 | -0.0010 | 0.0003 |
 
+## 6. Live-weather vintage: POWER GEOS-IT (live) vs MERRA-2 (training)
+
+POWER switches streams on 2026-10-02. POWER reports sources per request, not per day, so the header above lists every stream in the 2024-2026 request. The per-day stream was verified by single-day probes on 2026-11-20: 2026-10-01 MERRA2, 2026-10-02..11-19 GEOSIT, all sampled 2025 months MERRA2. Shift = (GEOS-IT − ERA5, Oct 2–Nov 14 2026) − (MERRA-2 − ERA5, same dates 2024/2025) over 96 cells. Null = the same calculation between the two MERRA-2 years (no stream change).
+
+| variable | shift | shift 95% CI | null | null 95% CI | |shift| > |null| | shift by region |
+|---|---|---|---|---|---|---|
+| t2m | 0.6838 | 0.501–0.883 | -0.0899 | -0.212–0.035 | True | norcal +1.60, nrockies +0.81, southwest -0.33, southeast -0.29, pnw +1.64, ozarks +0.67 |
+| t2m_max | -0.4283 | -0.616–-0.238 | 0.2846 | 0.130–0.445 | True | norcal -0.12, nrockies -0.14, southwest -0.47, southeast -1.76, pnw +0.62, ozarks -0.71 |
+| rh2m | -3.9439 | -4.853–-3.062 | 0.2043 | -0.669–1.075 | True | norcal -5.33, nrockies -6.94, southwest -2.74, southeast +1.83, pnw -5.45, ozarks -5.04 |
+| ws10m | -0.7084 | -0.793–-0.626 | 0.0144 | -0.008–0.038 | True | norcal -0.76, nrockies -0.55, southwest -0.72, southeast -1.11, pnw -0.69, ozarks -0.42 |
+| ws10m_max | -1.1403 | -1.285–-1.000 | 0.0231 | -0.013–0.057 | True | norcal -1.32, nrockies -0.86, southwest -1.15, southeast -1.65, pnw -1.19, ozarks -0.67 |
+| precip_mm | -0.0043 | -0.177–0.163 | -0.2734 | -0.435–-0.120 | False | norcal +0.16, nrockies +0.13, southwest -0.41, southeast +0.48, pnw -0.30, ozarks -0.08 |
+| gwettop | -0.0622 | -0.080–-0.044 | -0.0125 | -0.030–0.005 | True | norcal -0.02, nrockies -0.01, southwest -0.09, southeast -0.09, pnw -0.01, ozarks -0.16 |
+| gwetroot | 0.0181 | -0.008–0.048 | 0.0461 | 0.023–0.073 | False | norcal -0.05, nrockies +0.05, southwest +0.06, southeast -0.03, pnw +0.10, ozarks -0.02 |
+
+Read a shift as real only when its CI excludes zero AND it clearly exceeds the null: RH, mean/max wind, T2M and surface soil wetness qualify; T2M_MAX does not (its null is itself non-zero); precipitation and root-zone wetness show no shift.
+
+Frozen model sensitivity (region-mean shifts applied to the 134,507 untouched-test rows; no refit):
+
+```json
+{
+ "rows": 134507,
+ "precip_ratio_applied": 0.994236114450675,
+ "mean_abs_prob_change": 0.0017229021122298362,
+ "p95_abs_prob_change": 0.009632901599660612,
+ "mean_prob_before_after": [
+  0.046563837501299256,
+  0.04611685821386115
+ ],
+ "threshold_decision_agreement": 0.9936583226151798,
+ "alerts_before_after": [
+  16404,
+  15769
+ ],
+ "ap_before_after": {
+  "all": [
+   0.15982454758911888,
+   0.16029189340397748
+  ],
+  "nrockies": [
+   0.0746165081771496,
+   0.07445795891610855
+  ],
+  "southwest": [
+   0.0429049158675391,
+   0.043487059213640634
+  ],
+  "southeast": [
+   0.2638100973762108,
+   0.26482958987348904
+  ],
+  "pnw": [
+   0.07139878299259333,
+   0.07203869237846308
+  ],
+  "ozarks": [
+   0.14898893305082023,
+   0.14911258335898342
+  ]
+ },
+ "note": "region-mean additive shifts (precip multiplicative) applied to the test rows; dry_days and gwetroot_chg30 left unchanged"
+}
+```
+
+Caveats: autumn window only (Oct 2 - Nov 14); shifts may differ in the summer fire season; mean additive shifts only; GEOS-IT day-to-day correlation with ERA5 is reported per window; dry_days and gwetroot_chg30 were not perturbed in the sensitivity run.
+

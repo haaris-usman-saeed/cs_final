@@ -111,8 +111,12 @@ curl -s "http://127.0.0.1:8000/api/predictions?region=pnw"
 | `/api/regions` | Supported regions; nothing outside them is predicted |
 | `/api/status` | Last live-run state and checks |
 
-Live inputs (NRT detections without `type`; POWER GEOS-IT for recent days) differ from the training inputs and are
-**not separately validated**. Treat live output as experimental.
+Live inputs differ from training inputs: NRT detections have no `type` field, and POWER weather is GEOS-IT after
+2026-10-02. The weather shift was measured with `python -m fireaq vintage-check-v3`:
+- RH −3.9 points, wind −0.7 m/s, temperature +0.7 °C (region-dependent);
+- under these shifts, 99.4% of the frozen model's alert decisions are unchanged.
+
+The FIRMS NRT-vs-archive difference is not measured. Treat live output as experimental.
 
 ## Earlier pilot (v0.2, NorCal only)
 Kept for reproducibility: `ingest-archive`, `build`, `experiment`, `evaluate-test`, `vintage-check` and `predict-live-v02`, with
