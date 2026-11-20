@@ -26,6 +26,10 @@ def prediction_file() -> Path:
     return Path(os.environ.get('FIRERISK_PREDICTIONS', str(output_dir() / 'predictions.json')))
 
 
+def state_dir() -> Path:
+    return Path(os.environ.get('FIRERISK_STATE', str(APP_ROOT / 'state')))
+
+
 def status_file() -> Path:
     return Path(os.environ.get('FIRERISK_LIVE_STATUS', str(APP_ROOT / 'data' / 'live' / 'live_status.json')))
 
@@ -114,6 +118,15 @@ def model_card():
 @app.get('/api/status')
 def live_status():
     return _read_json(status_file(), 'live run status')
+
+
+@app.get('/api/prospective')
+def prospective():
+    p = state_dir() / 'prospective' / 'summary.json'
+    if not p.exists():
+        return {'predictions': 0, 'accuracy': None, 'accuracy_status': 'NOT AVAILABLE: no prospective log yet',
+                'note': 'Live accuracy is only reported after enough real outcomes have been observed.'}
+    return json.loads(p.read_text())
 
 
 @app.get('/', response_class=HTMLResponse)

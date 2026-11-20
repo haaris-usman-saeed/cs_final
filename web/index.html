@@ -34,9 +34,17 @@ code{background:#0d1d17;padding:2px 5px;border-radius:4px;font-size:12px}
   <div id="details" class="muted">Select a cell.</div></div>
  <div>
   <div class="panel"><h2>Today's run</h2><div id="status" class="muted">Loading…</div></div>
-  <div class="panel" style="margin-top:14px"><h2>How good is it here?</h2><div id="perf" class="muted">Loading…</div></div>
+  <div class="panel" style="margin-top:14px"><h2>How good is it here? (historical test)</h2><div id="perf" class="muted">Loading…</div></div>
+  <div class="panel" style="margin-top:14px"><h2>Live (prospective) accuracy</h2><div id="prosp" class="muted">Loading…</div></div>
  </div>
 </div>
+<section class="panel" style="margin-top:18px"><h2>Limitations — read before using</h2><ul class="muted" style="margin:0;padding-left:18px">
+<li><strong>Experimental research output.</strong> Not an official forecast, fire-danger rating, alert or warning.</li>
+<li><strong>Satellite detection, not wildfire risk.</strong> The probability is that NOAA-20 VIIRS records a qualifying thermal anomaly in a ~2,300 km² cell during the next UTC day. It says nothing about ignition, fire behaviour, spread, smoke, or danger to people or property.</li>
+<li><strong>Misses and false fires.</strong> Clouds, smoke, small or short fires and gaps between overpasses cause missed detections; agricultural, prescribed and some industrial heat sources are counted.</li>
+<li><strong>Modest skill.</strong> On held-out 2024–25 data the model ranks cells better than a fire climatology, but in never-used regions only about 1 in 7 alerts was followed by a detection, and in the Ozarks the gain over climatology was not statistically clear.</li>
+<li><strong>Live accuracy is unknown.</strong> Live inputs (near-real-time FIRMS, GEOS-IT weather) differ from the archived training inputs; accuracy on live predictions is reported only after enough real outcomes have been logged.</li>
+<li><strong>Six regions only.</strong> Nothing is predicted or implied outside the boxes shown; cells with a detection in the last 7 days are not scored.</li></ul></section>
 <footer>Data: NASA FIRMS NOAA-20/S-NPP VIIRS 375 m (LANCE FIRMS, NASA ESDIS) · NASA POWER (MERRA-2, GEOS-IT, CERES) · ESA WorldCover 2020 (© ESA WorldCover project, CC BY 4.0) · Copernicus DEM GLO-90 (© DLR/Airbus, Copernicus programme) · Natural Earth. No endorsement implied. Code MIT; dataset CC BY 4.0. API: <code>/api/predictions?region=&amp;cell_id=</code>, <code>/api/model</code>, <code>/api/regions</code>, <code>/api/status</code>.</footer>
 </div>
 <script>
@@ -44,7 +52,11 @@ const $=id=>document.getElementById(id), pct=v=>v==null?'n/a':(100*v).toFixed(1)
 const col=p=>p<.02?'#62b98c':p<.05?'#c9c46a':p<.15?'#d3a55c':'#d86d4a';
 let R={},P=null,M=null,cur=null;
 const roleLabel={development:'development region',test_space:'untouched test region'};
-async function j(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||r.status);return r.json()}
+const STATIC={'/api/regions':'data/regions.json','/api/model':'data/model.json','/api/predictions':'data/predictions.json','/api/status':'data/live_status.json','/api/prospective':'data/prospective_summary.json'};
+async function j(u){let r;try{r=await fetch(u)}catch(e){r=null}
+ if(!r||r.status===404||(r.headers.get('content-type')||'').includes('text/html')){const s=STATIC[u.split('?')[0]];if(!s)throw new Error('unavailable');r=await fetch(s);if(!r.ok)throw new Error('not published');const d=await r.json();
+  if(u.startsWith('/api/predictions')){const today=new Date().toISOString().slice(0,10);d.stale=(d.issue_time_utc||'').slice(0,10)!==today;d.stale_reason=d.stale?'issue date is not today (UTC); the daily job did not publish':null}return d}
+ if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||r.status);return r.json()}
 function perfFor(reg){if(!M||!M.test)return '<p>No untouched-test results yet.</p>';
  let rows='';for(const [set,label] of [['test_time','2024–25 (untouched)'],['test_space_primary','2024–25, unseen region'],['test_space_secondary','2019–23, unseen region'],['previously_tested_norcal','2024–25, already seen in v0.2']]){
   const b=M.test[set]?.by_region?.[reg];if(!b)continue;const c=b.champion,h=b.climatology_hist_snpp;
@@ -64,6 +76,7 @@ function draw(reg){cur=reg;for(const b of document.querySelectorAll('.tab'))b.se
  try{M=await j('/api/model')}catch(e){M=null}
  try{P=await j('/api/predictions')}catch(e){P=null}
  let st=null;try{st=await j('/api/status')}catch(e){}
+ try{const q=await j('/api/prospective');$('prosp').innerHTML=`<p><strong>${q.accuracy_status||'NOT AVAILABLE'}</strong></p><table><tr><td>Predictions logged</td><td>${q.predictions??0}</td></tr><tr><td>Outcomes resolved</td><td>${q.resolved??0}</td></tr><tr><td>Unresolvable (data gap)</td><td>${q.unresolvable_gap??0}</td></tr><tr><td>Log hash chain</td><td>${q.chain?.ok===false?'<span class="bad">BROKEN</span>':'verified'}</td></tr></table><p>No live accuracy is claimed until ${q.min_requirements?.resolved_issue_days??60} issue days and ${q.min_requirements?.positive_outcomes??50} observed detections have been resolved. Every prediction is logged before its outcome is known and is never edited.</p>`}catch(e){$('prosp').textContent='Prospective log not available.'}
  let h='';if(P){h+=`<p class="${P.stale?'bad':'ok'}">${P.stale?'STALE: '+P.stale_reason:'Fresh'} · issued ${P.issue_time_utc} · target ${P.target_date} UTC</p>`;
   const f=P.data_freshness||{};h+=`<table><tr><td>Newest NRT detection</td><td>${f.nrt_newest_detection_utc||'n/a'} (${f.nrt_newest_detection_age_h??'?'} h old)</td></tr><tr><td>Weather last day used</td><td>${f.weather_last_day_used||'n/a'}</td></tr><tr><td>Cells scored</td><td>${P.predictions.length}</td></tr><tr><td>Model</td><td>${P.model}</td></tr></table>`}
  else h+='<p>No predictions published.</p>';

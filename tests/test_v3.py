@@ -200,3 +200,93 @@ def test_power_vintage_double_difference_recovers_planted_shift():
     assert summary['t2m']['shift_mean'] == pytest.approx(1.0, abs=0.05)
     assert abs(summary['t2m']['null_mean_2025_minus_2024']) < 0.05
     assert abs(summary['gwetroot']['shift_mean']) < 0.01 and abs(summary['rh2m']['shift_mean']) < 1e-9
+
+
+def test_nrt_vs_sp_matching_recovers_planted_differences():
+    from fireaq.nrt_vs_sp import compare
+    rng = np.random.default_rng(1)
+    n = 400
+    sp = pd.DataFrame({'latitude': 40.0 + rng.random(n) * 2, 'longitude': -122.5 + rng.random(n) * 2,
+                       'acq_date': '2025-08-01', 'acq_time': rng.choice(['0930', '2112'], n),
+                       'confidence': rng.choice(['n', 'h', 'l'], n, p=[.6, .3, .1]), 'frp': 5 + rng.random(n) * 20,
+                       'daynight': 'D', 'type': 0})
+    keep = rng.random(n) > 0.1                                   # NRT misses 10 %
+    nrt = sp[keep].copy()
+    nrt['latitude'] += 200 / 6_371_008.8 * 180 / np.pi            # 200 m north shift
+    plus1 = nrt['acq_time'].map({'0930': '0931', '2112': '2113'})                 # +1 minute for half of them
+    nrt['acq_time'] = np.where(rng.random(len(nrt)) < 0.5, nrt['acq_time'], plus1)
+    nrt['confidence'] = nrt['confidence'].map({'n': 'nominal', 'h': 'high', 'l': 'low'})
+    nrt = nrt.drop(columns='type')
+    extra = sp.sample(20, random_state=2).assign(latitude=lambda d: d.latitude + 0.2, confidence='nominal').drop(columns='type')
+    nrt = pd.concat([nrt, extra], ignore_index=True)
+    r = compare(sp, nrt, '2025-08-01', '2025-08-01', regions=['norcal'])['regions']['norcal']
+    ns = int((sp.latitude.between(38.5, 42.5) & sp.longitude.between(-123.5, -119.5)).sum())
+    assert r['sp_detections'] == ns
+    assert r['sp_matched_share'] == pytest.approx(0.9, abs=0.05)
+    assert r['geolocation_m']['mean_north'] == pytest.approx(200, abs=5)
+    assert r['confidence_matrix_sp_rows_nrt_cols']['nominal'].get('high', 0) == 0
+    assert r['unmatched_nrt_by_conf'].get('nominal', 0) >= 1
+
+
+def _pred_file(tmp_path, issue='2026-11-20', p=0.2):
+    d = {'model': 'extra_trees|B', 'model_version': '0.3.0', 'generated_at_utc': f'{issue}T03:00:00+00:00',
+         'data_freshness': {'nrt_newest_detection_utc': f'{issue}T00:00:00Z'},
+         'predictions': [{'region': 'norcal', 'cell_key': 'norcal:r0_c0', 'issue_time_utc': f'{issue}T00:00:00Z',
+                          'target_start_utc': '2026-11-21T00:00:00Z', 'target_end_utc': '2026-11-22T00:00:00Z',
+                          'probability_nextday_detection': p, 'above_validation_threshold': True}]}
+    f = tmp_path / f'pred_{p}.json'
+    f.write_text(json.dumps(d))
+    return f
+
+
+def test_prospective_log_is_append_only_and_tamper_evident(tmp_path):
+    from fireaq import prospective as pr
+    log = tmp_path / 'log.jsonl'
+    assert pr.log_predictions(_pred_file(tmp_path), log, 'fp1')['appended'] == 1
+    assert pr.log_predictions(_pred_file(tmp_path), log, 'fp1') == {'appended': 0, 'already_logged': 1}
+    with pytest.raises(RuntimeError, match='immutable'):
+        pr.log_predictions(_pred_file(tmp_path, p=0.9), log, 'fp1')
+    assert pr.verify_chain(log)['ok']
+    lines = log.read_text().splitlines()
+    log.write_text(lines[0].replace('0.2', '0.3') + '\n')
+    assert not pr.verify_chain(log)['ok']
+    with pytest.raises(RuntimeError, match='chain broken'):
+        pr.log_predictions(_pred_file(tmp_path, issue='2026-11-21'), log, 'fp1')
+
+
+def test_prospective_outcomes_resolve_only_with_coverage_and_no_accuracy_claim(tmp_path):
+    from fireaq import prospective as pr
+    log = tmp_path / 'log.jsonl'
+    pr.log_predictions(_pred_file(tmp_path), log, 'fp1')
+    def store(days, fire_day=None):
+        rows = []
+        for d in days:
+            rows += [{'latitude': 30.1, 'longitude': -90.1, 'acq_date': d, 'acq_time': '0900', 'confidence': 'nominal',
+                      'frp': 1.0, 'daynight': 'N'}] * 300
+            rows += [{'latitude': 30.1, 'longitude': -90.1, 'acq_date': d, 'acq_time': '2100', 'confidence': 'nominal',
+                      'frp': 1.0, 'daynight': 'D'}] * 300
+        if fire_day:
+            rows.append({'latitude': 38.75, 'longitude': -123.25, 'acq_date': fire_day, 'acq_time': '2100',
+                         'confidence': 'high', 'frp': 9.0, 'daynight': 'D'})
+        rows.append({'latitude': 30.1, 'longitude': -90.1, 'acq_date': '2026-11-22', 'acq_time': '0900',
+                     'confidence': 'nominal', 'frp': 1.0, 'daynight': 'N'})
+        return pd.DataFrame(rows)
+    early = pd.Timestamp('2026-11-22T06:00', tz='UTC')
+    assert pr.resolve_outcomes(log, store(['2026-11-21'], '2026-11-21'), set(), now=early)['resolved'] == 0
+    later = pd.Timestamp('2026-11-22T13:00', tz='UTC')
+    assert pr.resolve_outcomes(log, store(['2026-11-21'], '2026-11-21'), set(), now=later)['resolved'] == 1
+    out = [r for r in pr.read_log(log) if r['record_type'] == 'outcome'][0]
+    assert out['observed_detection'] == 1 and out['outcome_status'] == 'resolved'
+    s = pr.summary(log)
+    assert s['accuracy'] is None and 'NOT AVAILABLE' in s['accuracy_status'] and s['chain']['ok']
+
+
+def test_prospective_gap_day_is_unresolvable_not_negative(tmp_path):
+    from fireaq import prospective as pr
+    log = tmp_path / 'log.jsonl'
+    pr.log_predictions(_pred_file(tmp_path), log, 'fp1')
+    st = pd.DataFrame([{'latitude': 30.1, 'longitude': -90.1, 'acq_date': '2026-11-22', 'acq_time': '0900',
+                        'confidence': 'nominal', 'frp': 1.0, 'daynight': 'N'}])
+    pr.resolve_outcomes(log, st, set(), now=pd.Timestamp('2026-11-22T13:00', tz='UTC'))
+    out = [r for r in pr.read_log(log) if r['record_type'] == 'outcome'][0]
+    assert out['outcome_status'] == 'unresolvable_gap' and out['observed_detection'] is None

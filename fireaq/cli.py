@@ -300,17 +300,77 @@ def main(argv=None):
     v3 = sub.add_parser('vintage-check-v3', help='v0.3: MERRA-2 vs GEOS-IT POWER weather shift (ERA5 bridge) + model sensitivity')
     v3.add_argument('--root', default='data/v03')
     v3.add_argument('--out', default='output_v3')
+    nv = sub.add_parser('nrt-vs-sp', help='Compare NOAA-20 NRT vs standard-processing detections (needs overlapping data)')
+    nv.add_argument('--mode', choices=['api', 'files', 'store'], default='api')
+    nv.add_argument('--nrt', nargs='*', default=[])
+    nv.add_argument('--sp', nargs='*', default=[])
+    nv.add_argument('--start')
+    nv.add_argument('--end')
+    nv.add_argument('--out', default='output_v3/nrt_vs_sp')
+    rb = sub.add_parser('rebuild-champion', help='Rebuild the frozen v0.3 champion from the committed dataset and verify it')
+    rb.add_argument('--dataset', default='release_v3/firerisk_open_multiregion_v0.3.0.parquet')
+    rb.add_argument('--frozen', default='release_v3/frozen_champion_v3.json')
+    rb.add_argument('--fingerprint', default='release_v3/model_fingerprint_v3.json')
+    rb.add_argument('--out', default='output_v3')
+    pl = sub.add_parser('prospective-log', help='Append today\'s predictions and resolve due outcomes (append-only)')
+    pl.add_argument('--state', default='state')
+    pl.add_argument('--predictions', default='output_v3/predictions.json')
+    pl.add_argument('--no-predictions', action='store_true', help='only resolve outcomes (e.g. after a refused run)')
+    pr = sub.add_parser('prospective-report', help='Prospective log summary (no accuracy until minimums are met)')
+    pr.add_argument('--state', default='state')
     l3 = sub.add_parser('predict-live', help='v0.3: score today\'s 00:00 UTC issue in all supported regions')
     l3.add_argument('--model', default='output_v3/model_v3.joblib')
     l3.add_argument('--predictions', default='output_v3/predictions.json')
     l3.add_argument('--live-dir', default='data/live')
     l3.add_argument('--regions', default=None, help='comma-separated subset of regions')
+    l3.add_argument('--inputs-dir', default='release_v3/live_inputs')
     args = p.parse_args(argv)
     {'ingest': ingest, 'ingest-archive': ingest_archive_cmd, 'build': build, 'experiment': experiment,
      'train': experiment, 'evaluate-test': evaluate_test, 'vintage-check': vintage_check,
      'predict-live-v02': predict_live, 'ingest-v3': ingest_v3_cmd, 'build-v3': build_v3_cmd,
      'experiment-v3': experiment_v3_cmd, 'evaluate-test-v3': evaluate_test_v3_cmd,
-     'predict-live': predict_live_v3_cmd, 'vintage-check-v3': vintage_v3_cmd}[args.command](args)
+     'predict-live': predict_live_v3_cmd, 'vintage-check-v3': vintage_v3_cmd, 'nrt-vs-sp': nrt_vs_sp_cmd,
+     'rebuild-champion': rebuild_cmd, 'prospective-log': prospective_log_cmd,
+     'prospective-report': prospective_report_cmd}[args.command](args)
+
+
+MASK = Path('release_v3/live_inputs/static_source_mask_2019_2022_all_regions.json')
+
+
+def nrt_vs_sp_cmd(args):
+    from .nrt_vs_sp import run
+    r = run(args.mode, Path(args.out), key=load_env_key(), nrt_files=args.nrt, sp_files=args.sp,
+            start=args.start, end=args.end, static_mask_path=MASK)
+    print(json.dumps({k: r[k] for k in r if k in ('state', 'reason', 'unblock', 'totals', 'window_utc')}, indent=2))
+
+
+def rebuild_cmd(args):
+    from .deploy import rebuild_champion, verify
+    p = rebuild_champion(Path(args.dataset), Path(args.frozen), Path(args.out))
+    verify(p, Path(args.dataset), Path(args.fingerprint))
+
+
+def _model_fp():
+    return json.loads(Path('release_v3/model_fingerprint_v3.json').read_text())['probabilities_rounded_sha256'][:16]
+
+
+def prospective_log_cmd(args):
+    from . import prospective as pr
+    log = Path(args.state) / 'prospective' / 'log.jsonl'
+    out = {}
+    if not args.no_predictions:
+        out['predictions'] = pr.log_predictions(Path(args.predictions), log, _model_fp())
+    store_p = Path(args.state) / 'live' / 'nrt_store.parquet'
+    if store_p.exists():
+        out['outcomes'] = pr.resolve_outcomes(log, pd.read_parquet(store_p), set(json.loads(MASK.read_text())))
+    s = pr.summary(log)
+    (Path(args.state) / 'prospective' / 'summary.json').write_text(json.dumps(s, indent=2, default=str) + '\n')
+    print(json.dumps({**out, 'chain_ok': s['chain']['ok'], 'accuracy_status': s['accuracy_status']}, indent=2))
+
+
+def prospective_report_cmd(args):
+    from . import prospective as pr
+    print(json.dumps(pr.summary(Path(args.state) / 'prospective' / 'log.jsonl'), indent=2, default=str))
 
 
 def vintage_v3_cmd(args):
@@ -353,7 +413,8 @@ def evaluate_test_v3_cmd(args):
 def predict_live_v3_cmd(args):
     from .live_v3 import run_live_v3
     st = run_live_v3(Path(args.model), Path(args.live_dir), Path(args.predictions),
-                     regions=args.regions.split(',') if args.regions else None, key=load_env_key())
+                     regions=args.regions.split(',') if args.regions else None, key=load_env_key(),
+                     inputs_dir=Path(args.inputs_dir))
     if st['state'] != 'OK':
         raise SystemExit(f"{st['state']}: {'; '.join(st['reasons'])}")
 

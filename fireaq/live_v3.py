@@ -114,7 +114,8 @@ def coverage_by_day(store: pd.DataFrame, days: list) -> pd.DataFrame:
 
 def run_live_v3(model_path: Path = Path('output_v3/model_v3.joblib'), live: Path = Path('data/live'),
                 predictions: Path = Path('output_v3/predictions.json'), static_mask_path: Path =
-                Path('data/v03/interim/static_source_mask_2019_2022_all_regions.json'),
+                Path('release_v3/live_inputs/static_source_mask_2019_2022_all_regions.json'),
+                inputs_dir: Path = Path('release_v3/live_inputs'),
                 test_results: Path = Path('output_v3/test_results_v3.json'), regions: list | None = None,
                 key: str = '', now: pd.Timestamp | None = None, log=print) -> dict:
     now = now or pd.Timestamp.now(tz='UTC')
@@ -157,15 +158,16 @@ def run_live_v3(model_path: Path = Path('output_v3/model_v3.joblib'), live: Path
     if cov['gap'].iloc[1:].any():
         return refuse('REFUSED_COVERAGE_GAP', f"NOAA-20 NRT gap on {cov.loc[cov.gap, 'day'].tolist()}: "
                                               'cannot distinguish "no fire" from "no data"')
-    mask = set(json.loads(static_mask_path.read_text())) if static_mask_path.exists() else None
-    if mask is None:
-        status['reasons'].append('static-source mask missing: NRT industrial sources may be counted')
+    if not Path(static_mask_path).exists():
+        return refuse('REFUSED_INPUTS', f'static-source mask {static_mask_path} missing: NRT industrial sources would '
+                                        'be counted as fires')
+    mask = set(json.loads(Path(static_mask_path).read_text()))
     tests = json.loads(test_results.read_text()) if test_results.exists() else {}
     out_regions, preds, unscored = {}, [], {}
     wstart, wend = issue - timedelta(days=PAD_DAYS + 5), issue - timedelta(days=1)
     for reg in (regions or list(REGIONS)):
         spec = REGIONS[reg]
-        cells = pd.read_csv(Path('data/v03/interim') / reg / 'cells.csv')
+        cells = pd.read_csv(Path(inputs_dir) / f'{reg}_cells.csv')
         land = cells[cells.included_land_cell]
         wx = []
         for c in land.itertuples():

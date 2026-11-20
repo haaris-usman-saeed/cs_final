@@ -118,6 +118,24 @@ Live inputs differ from training inputs: NRT detections have no `type` field, an
 
 The FIRMS NRT-vs-archive difference is not measured. Treat live output as experimental.
 
+## Running it as a platform
+* **CI** (`.github/workflows/ci.yml`) runs on every push and PR:
+  * tests on Python 3.11 and 3.12;
+  * a frozen-model rebuild and fingerprint check;
+  * a live dry run on real feeds that never publishes.
+* **Daily job** (`.github/workflows/daily.yml` → `scripts/daily_job.sh`, 02:30 UTC, default branch only):
+  * rebuilds and verifies the frozen model;
+  * runs inference with every safeguard;
+  * publishes only on success, and appends to the **prospective log**;
+  * opens a `live-run-failure` issue whenever nothing is published.
+* **Prospective log** (`state/prospective/log.jsonl` on the `prospective-state` branch): append-only and hash-chained.
+  Each prediction records its model fingerprint, issue time and input vintage; observed outcomes are appended later.
+  `python -m fireaq prospective-report` summarises it. **No live accuracy is reported** until 60 resolved issue days and
+  50 observed detections exist.
+* **NRT vs archived FIRMS** (`python -m fireaq nrt-vs-sp`): this compares coverage, timing, confidence, geolocation and label
+  agreement. It is **not yet measured**, because it needs a FIRMS MAP_KEY or the 2026 archive.
+* Costs, requirements, licences and the clean-checkout reproduction record are in **`docs/OPERATIONS.md`**.
+
 ## Earlier pilot (v0.2, NorCal only)
 Kept for reproducibility: `ingest-archive`, `build`, `experiment`, `evaluate-test`, `vintage-check` and `predict-live-v02`, with
 results in `release/RESULTS.md` and `docs/MODEL_CARD.md`.

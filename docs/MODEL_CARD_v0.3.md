@@ -97,5 +97,10 @@ On NorCal 2024–25, v0.2 scored AP 0.085 and v0.3 scores 0.094. That set had al
   * Standard-processing vs NRT FIRMS detection differences remain **unmeasured**: that needs a MAP_KEY or prospective collection.
 * Supported area: only the 6 listed 4°×4° regions. The model refuses anywhere else.
 
+## Live (prospective) performance
+**Not available.** Each live prediction is logged before its outcome is known (`fireaq/prospective.py`). Performance will be
+reported only after ≥ 60 resolved issue days and ≥ 50 observed detections, and labelled provisional (NRT outcomes) until a
+standard-processing re-check. All numbers above are retrospective (historical hold-out) results.
+
 ## Intended use
 Research, teaching, and benchmarking of leakage-safe spatio-temporal ML on open satellite data.

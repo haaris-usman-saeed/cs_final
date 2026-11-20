@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.3.1 — 2026-11-20: platform reliability
+* `fireaq/nrt_vs_sp.py` + `nrt-vs-sp`: NOAA-20 NRT vs standard-processing comparison. It covers coverage per day and overpass,
+  one-to-one matching (≤ 10 min, ≤ 750 m), timing, geolocation offsets, a confidence transition matrix, FRP ratio and v0.3
+  cell-day label agreement. It is tested on planted differences.
+  **Status: BLOCKED.** No keyless period has both products: the LANCE NRT archive needs Earthdata login, the FIRMS API needs a MAP_KEY,
+  and the 2026 SP yearly archive is not yet published.
+* `fireaq/deploy.py` + `rebuild-champion`: deterministic rebuild of the frozen model from the committed dataset, verified
+  against a 2,000-row prediction fingerprint (`release_v3/model_fingerprint_v3.json`). Measured max |Δp| ≤ 1.5e-14.
+* `fireaq/prospective.py` + `prospective-log` / `prospective-report`:
+  * append-only, hash-chained prediction/outcome log;
+  * immutable past predictions;
+  * coverage-gated NRT outcomes (gaps are "unresolvable", never negative);
+  * no accuracy until 60 issue days and 50 positives.
+* `scripts/daily_job.sh`: safeguarded daily pipeline with exit codes, one forecast per issue day, and output validation. Status is always
+  published, predictions only on success. It is tested locally on real feeds (refusal and success paths).
+* `.github/workflows/ci.yml` (tests on 3.11/3.12, model fingerprint, live dry run) and `.github/workflows/daily.yml`
+  (scheduled, state branch, Actions-cached NRT store, append-only enforcement, failure issue + e-mail, optional Pages).
+* Live: a missing static-source mask now refuses publication. Inputs are read from `release_v3/live_inputs/`, so no ingest is needed.
+* Website/API: `/api/prospective`, a limitations section, a live-accuracy panel ("not available"), and a static-hosting fallback with
+  browser-side staleness.
+* `docs/OPERATIONS.md`: deployment, measured costs, licences, clean-checkout reproduction record.
+* Tests: 34 → 38.
+
+
 ## 0.3.0 — 2026-11-20: multi-region dataset, audited methodology, untouched test, hardened live pipeline
 * `docs/AUDIT_v0.2.md`: 14 findings in v0.2. Key ones: single-year selection, coordinates as features, a confounded fire ablation,
   and a climatology baseline that cannot be used in new regions.

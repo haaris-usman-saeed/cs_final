@@ -50,3 +50,9 @@ not significant in the Ozarks alone. Fire history helps transfer to new regions 
 margin geographically. **Gate 4 is partly met:** the live weather vintage (POWER GEOS-IT vs MERRA-2) was measured on 2026-11-20. Several
 variables shift (RH −3.9 pts, wind −0.7 m/s), but the frozen model's decisions agree on 99.4% of test rows under those
 shifts. NRT vs standard-processing FIRMS is still unmeasured. No operational claims.
+
+## Platform status (2026-11-20, v0.3.1)
+* **Live predictive accuracy: NOT CLAIMED.** The prospective log starts with the first scheduled run after merge. Accuracy is reported only
+  after 60 resolved issue days and 50 observed detections, and labelled provisional (NRT outcomes) until a standard-processing re-check.
+* **NRT vs SP FIRMS: NOT MEASURED** (needs a FIRMS MAP_KEY or the 2026 SP archive). Gate 4 stays partly met.
+* The pipeline is reproducible from a clean checkout (dataset content identical; see `docs/OPERATIONS.md`).
