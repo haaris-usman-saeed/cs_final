@@ -280,15 +280,73 @@ def main(argv=None):
     v.add_argument('--input', default='data/norcal')
     v.add_argument('--data', required=True)
     v.add_argument('--out', default='output')
-    lv = sub.add_parser('predict-live', help='Score the current 00:00 UTC issue time with NRT + forecast weather')
+    lv = sub.add_parser('predict-live-v02', help='(v0.2, NorCal only) score with NRT + forecast weather')
     region(lv, 'data/live')
     lv.add_argument('--model', default='output/model.joblib')
     lv.add_argument('--predictions', default='output/predictions.json')
     lv.add_argument('--static-mask', default='data/norcal/interim/static_source_mask_2019_2022.json')
+    # ---------------- v0.3 multi-region
+    i3 = sub.add_parser('ingest-v3', help='v0.3 keyless multi-region ingest (FIRMS, POWER, WorldCover, DEM)')
+    i3.add_argument('--out', default='data/v03')
+    b3 = sub.add_parser('build-v3', help='v0.3 dataset release (test labels withheld unless --reveal-test-labels)')
+    b3.add_argument('--root', default='data/v03')
+    b3.add_argument('--reveal-test-labels', action='store_true')
+    e3 = sub.add_parser('experiment-v3', help='v0.3 CV selection on development rows only; freezes champion')
+    e3.add_argument('--data', default='data/v03/dataset/firerisk_open_multiregion_v0.3.0.parquet')
+    e3.add_argument('--out', default='output_v3')
+    t3 = sub.add_parser('evaluate-test-v3', help='v0.3 ONE-TIME untouched test')
+    t3.add_argument('--data', default='data/v03/dataset/firerisk_open_multiregion_v0.3.0.parquet')
+    t3.add_argument('--out', default='output_v3')
+    l3 = sub.add_parser('predict-live', help='v0.3: score today\'s 00:00 UTC issue in all supported regions')
+    l3.add_argument('--model', default='output_v3/model_v3.joblib')
+    l3.add_argument('--predictions', default='output_v3/predictions.json')
+    l3.add_argument('--live-dir', default='data/live')
+    l3.add_argument('--regions', default=None, help='comma-separated subset of regions')
     args = p.parse_args(argv)
     {'ingest': ingest, 'ingest-archive': ingest_archive_cmd, 'build': build, 'experiment': experiment,
      'train': experiment, 'evaluate-test': evaluate_test, 'vintage-check': vintage_check,
-     'predict-live': predict_live}[args.command](args)
+     'predict-live-v02': predict_live, 'ingest-v3': ingest_v3_cmd, 'build-v3': build_v3_cmd,
+     'experiment-v3': experiment_v3_cmd, 'evaluate-test-v3': evaluate_test_v3_cmd,
+     'predict-live': predict_live_v3_cmd}[args.command](args)
+
+
+def ingest_v3_cmd(args):
+    from .ingest3 import ingest_v3
+    rep = ingest_v3(Path(args.out))
+    print(json.dumps({k: rep[k] for k in ['firms_day_status_counts', 'raw_files', 'network_downloads_this_run']}, indent=2))
+
+
+def build_v3_cmd(args):
+    from .dataset3 import build_release_v3
+    rep = build_release_v3(Path(args.root), reveal_test_labels=args.reveal_test_labels)
+    print(json.dumps({k: rep[k] for k in ['rows', 'in_primary_analysis', 'row_accounting']}, indent=2))
+
+
+def experiment_v3_cmd(args):
+    from .experiment_v3 import regression_v3, run_development_v3
+    out = Path(args.out)
+    if (out / 'test_results_v3.json').exists():
+        raise SystemExit('Untouched test already run for this output directory: development is closed.')
+    df = pd.read_parquet(args.data)
+    df = df[df['in_primary_analysis']]
+    run_development_v3(df, out)
+    regression_v3(df, out)
+
+
+def evaluate_test_v3_cmd(args):
+    from .experiment_v3 import run_final_test_v3
+    df = pd.read_parquet(args.data)
+    res = run_final_test_v3(df[df['in_primary_analysis']], Path(args.out))
+    print(json.dumps({r: res[r]['metrics']['champion']['average_precision'] for r in res
+                      if isinstance(res[r], dict) and 'metrics' in res[r]}, indent=2))
+
+
+def predict_live_v3_cmd(args):
+    from .live_v3 import run_live_v3
+    st = run_live_v3(Path(args.model), Path(args.live_dir), Path(args.predictions),
+                     regions=args.regions.split(',') if args.regions else None, key=load_env_key())
+    if st['state'] != 'OK':
+        raise SystemExit(f"{st['state']}: {'; '.join(st['reasons'])}")
 
 
 if __name__ == '__main__':

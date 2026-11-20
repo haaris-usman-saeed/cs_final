@@ -274,14 +274,18 @@ def test_api_serves_and_validates_predictions(tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
     from fireaq import server
     p = tmp_path / 'predictions.json'
-    p.write_text(json.dumps({'generated_at_utc': '2026-11-19T01:00:00+00:00', 'issue_time_utc': '2026-11-19T00:00:00Z',
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    p.write_text(json.dumps({'generated_at_utc': now.isoformat(), 'issue_time_utc': now.strftime('%Y-%m-%dT00:00:00Z'),
                              'target_date': '2026-11-20', 'forecast_status': 'EXPERIMENTAL',
                              'predictions': [{'cell_id': 'r0_c0', 'latitude': 38.75, 'longitude': -123.25,
                                               'probability_nextday_detection': 0.01}]}))
     monkeypatch.setenv('FIRERISK_PREDICTIONS', str(p))
     c = TestClient(server.app)
     body = c.get('/api/predictions').json()
-    assert body['predictions'][0]['cell_id'] == 'r0_c0' and 'stale' in body
+    assert body['predictions'][0]['cell_id'] == 'r0_c0' and body['stale'] is False
+    assert c.get('/api/predictions?region=atlantis').status_code == 404
+    assert 'nrockies' in c.get('/api/regions').json()['regions']
     assert c.get('/api/predictions?cell_id=nope').status_code == 404
     p.write_text('{"predictions": [{"probability_nextday_detection": 7}]}')
     assert c.get('/api/predictions').status_code == 500

@@ -400,3 +400,166 @@ def fetch_natural_earth(name: str, rawdir: Path, manifest: list) -> Path:
 def write_manifest(path: Path, manifest: list) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(manifest, indent=2, default=str) + '\n')
+
+
+# --------------------------------------------------------------------------- v0.3: NASA POWER, WorldCover, DEM
+POWER_API = 'https://power.larc.nasa.gov/api/temporal/daily/point'
+POWER_PARAMS = ['T2M', 'T2M_MAX', 'T2M_MIN', 'RH2M', 'QV2M', 'PRECTOTCORR', 'WS10M', 'WS10M_MAX',
+                'GWETTOP', 'GWETROOT', 'CLOUD_AMT']
+WORLDCOVER = ('https://esa-worldcover.s3.eu-central-1.amazonaws.com/v100/2020/map/'
+              'ESA_WorldCover_10m_2020_v100_{tile}_Map.tif')
+WORLDCOVER_CLASSES = {10: 'tree', 20: 'shrub', 30: 'grass', 40: 'crop', 50: 'built', 60: 'bare',
+                      70: 'snow', 80: 'water', 90: 'wetland', 95: 'mangrove', 100: 'moss'}
+ELEVATION_API = 'https://api.open-meteo.com/v1/elevation'
+
+
+def power_json_to_daily(payload: dict, cell_id: str) -> pd.DataFrame:
+    """NASA POWER daily (UTC) JSON -> one row per UTC day. Fill value -999 becomes NaN, never 0."""
+    hdr = payload.get('header', {})
+    if hdr.get('time_standard') not in (None, 'UTC'):
+        raise SourceError(f'POWER returned time standard {hdr.get("time_standard")}, expected UTC')
+    par = payload.get('properties', {}).get('parameter', {})
+    missing = set(POWER_PARAMS) - set(par)
+    if missing:
+        raise SourceError(f'POWER payload missing parameters {missing}')
+    fill = hdr.get('fill_value', -999.0)
+    df = pd.DataFrame({k: pd.Series(v) for k, v in par.items()})
+    df = df.replace(fill, np.nan)
+    df.index = pd.to_datetime(df.index, format='%Y%m%d')
+    if df.index.duplicated().any():
+        raise SourceError('POWER returned duplicate days')
+    df = df.sort_index()
+    out = pd.DataFrame({
+        'cell_id': cell_id, 'date': df.index.strftime('%Y-%m-%d'),
+        't2m': df['T2M'], 't2m_max': df['T2M_MAX'], 't2m_min': df['T2M_MIN'], 'rh2m': df['RH2M'],
+        'precip_mm': df['PRECTOTCORR'], 'ws10m': df['WS10M'], 'ws10m_max': df['WS10M_MAX'],
+        'gwettop': df['GWETTOP'], 'gwetroot': df['GWETROOT'], 'cloud_pct': df['CLOUD_AMT'],
+    }).reset_index(drop=True)
+    es = 0.6108 * np.exp(17.27 * out['t2m_max'] / (out['t2m_max'] + 237.3))
+    # Daily-max VPD approximation (Tmax with daily-mean RH); documented in the data dictionary.
+    out['vpd_kpa'] = es * (1 - out['rh2m'].clip(0, 100) / 100.0)
+    return out
+
+
+def fetch_power_daily(cell_id: str, lat: float, lon: float, start: date, end: date, rawdir: Path,
+                      manifest: list, live: bool = False, pace_seconds: float = 0.5) -> pd.DataFrame:
+    params = {'parameters': ','.join(POWER_PARAMS), 'community': 'AG', 'longitude': f'{lon:.4f}',
+              'latitude': f'{lat:.4f}', 'start': f'{start:%Y%m%d}', 'end': f'{end:%Y%m%d}',
+              'format': 'JSON', 'time-standard': 'UTC'}
+    if live:
+        stamp = pd.Timestamp.now(tz='UTC').strftime('%Y%m%dT%H%M%SZ')
+        fname, hit = f'{cell_id}_POWER_live_{start:%Y%m%d}_{end:%Y%m%d}_{stamp}.json', None
+    else:
+        fname = f'{cell_id}_POWER_{start:%Y%m%d}_{end:%Y%m%d}.json'
+        hit = cached_entry(rawdir / 'weather' / fname)
+    dst = rawdir / 'weather' / fname
+    if hit:
+        content = dst.read_bytes()
+        manifest.append(hit)
+    else:
+        r = _get(POWER_API, params=params, timeout=(15, 90))
+        content = r.content
+        payload = json.loads(content)
+        if 'properties' not in payload:
+            raise SourceError(f'POWER error for {cell_id}: {str(payload)[:300]}')
+        save_raw(rawdir / 'weather', fname, content, 'NASA POWER daily', r.url, manifest,
+                 product='NASA POWER v2 daily point (UTC)', cell_id=cell_id, first_day=str(start),
+                 last_day=str(end), power_sources=payload['header'].get('sources'),
+                 units={k: v.get('units') for k, v in payload.get('parameters', {}).items()},
+                 grid_point=payload.get('geometry', {}).get('coordinates'))
+        time.sleep(pace_seconds)
+    out = power_json_to_daily(json.loads(content), cell_id)
+    out['power_sources'] = ','.join(json.loads(content)['header'].get('sources', []))
+    return out
+
+
+def worldcover_tile(lat: float, lon: float) -> str:
+    la = int(np.floor(lat / 3.0) * 3)
+    lo = int(np.floor(lon / 3.0) * 3)
+    return f'{"N" if la >= 0 else "S"}{abs(la):02d}{"E" if lo >= 0 else "W"}{abs(lo):03d}'
+
+
+def worldcover_fractions(cells: pd.DataFrame, step: float, rawdir: Path, manifest: list,
+                         size: int = 600) -> pd.DataFrame:
+    """Class fractions per cell from ESA WorldCover 2020, read through COG overviews (≈90 m effective).
+
+    The per-cell sampled class counts are saved as the raw artefact (with hash) so results are auditable.
+    """
+    import rasterio
+    from rasterio.enums import Resampling
+    from rasterio.windows import from_bounds
+    dst = rawdir / 'landcover' / f'worldcover2020_counts_{len(cells)}cells_{cells.cell_key.iloc[0]}.json'
+    hit = cached_entry(dst)
+    if hit:
+        manifest.append(hit)
+        counts = json.loads(dst.read_text())
+    else:
+        counts, urls = {}, set()
+        env = dict(GDAL_DISABLE_READDIR_ON_OPEN='EMPTY_DIR', CPL_VSIL_CURL_ALLOWED_EXTENSIONS='.tif',
+                   GDAL_HTTP_MAX_RETRY='4', GDAL_HTTP_RETRY_DELAY='3')
+        with rasterio.Env(**env):
+            for r in cells.itertuples():
+                url = WORLDCOVER.format(tile=worldcover_tile(r.latitude, r.longitude))
+                urls.add(url)
+                with rasterio.open('/vsicurl/' + url) as src:
+                    w = from_bounds(r.longitude - step/2, r.latitude - step/2, r.longitude + step/2,
+                                    r.latitude + step/2, transform=src.transform)
+                    a = src.read(1, window=w, out_shape=(size, size), resampling=Resampling.nearest)
+                v, c = np.unique(a, return_counts=True)
+                counts[r.cell_key] = {str(int(k)): int(n) for k, n in zip(v, c)}
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        save_raw(dst.parent, dst.name, json.dumps(counts, sort_keys=True).encode(), 'ESA WorldCover 2020 v100',
+                 'https://esa-worldcover.org (CC BY 4.0); tiles: ' + ' '.join(sorted(urls)), manifest,
+                 product='ESA WorldCover 10m 2020 v100, nearest-neighbour sample via COG overviews',
+                 sample_grid=f'{size}x{size} per cell')
+    rows = []
+    for key, cnt in counts.items():
+        tot = sum(cnt.values()) - cnt.get('0', 0)
+        row = {'cell_key': key}
+        for code, name in WORLDCOVER_CLASSES.items():
+            row[f'lc_{name}'] = cnt.get(str(code), 0) / tot if tot else np.nan
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+COP_DEM = ('https://copernicus-dem-90m.s3.amazonaws.com/Copernicus_DSM_COG_30_{ns}{la:02d}_00_{ew}{lo:03d}_00_DEM/'
+           'Copernicus_DSM_COG_30_{ns}{la:02d}_00_{ew}{lo:03d}_00_DEM.tif')
+
+
+def dem_terrain(cells: pd.DataFrame, step: float, rawdir: Path, manifest: list, size: int = 300) -> pd.DataFrame:
+    """Elevation mean / std / p5-p95 range per cell from Copernicus DEM GLO-90 COGs (AWS open data),
+    read at ~180 m (average resampling of 90 m pixels). Per-cell statistics are stored as the hashed raw artefact."""
+    import rasterio
+    from rasterio.enums import Resampling
+    from rasterio.windows import from_bounds
+    dst = rawdir / 'terrain' / f'copdem90_stats_{len(cells)}cells_{cells.cell_key.iloc[0]}.json'
+    hit = cached_entry(dst)
+    if hit:
+        manifest.append(hit)
+        stats = json.loads(dst.read_text())['stats']
+    else:
+        stats, urls = {}, set()
+        env = dict(GDAL_DISABLE_READDIR_ON_OPEN='EMPTY_DIR', CPL_VSIL_CURL_ALLOWED_EXTENSIONS='.tif',
+                   GDAL_HTTP_MAX_RETRY='4', GDAL_HTTP_RETRY_DELAY='3')
+        with rasterio.Env(**env):
+            for r in cells.itertuples():
+                w, s_, e, n = (r.longitude - step/2, r.latitude - step/2, r.longitude + step/2, r.latitude + step/2)
+                la, lo = int(np.floor(s_)), int(np.floor(w))
+                url = COP_DEM.format(ns='N' if la >= 0 else 'S', la=abs(la), ew='E' if lo >= 0 else 'W', lo=abs(lo))
+                urls.add(url)
+                try:
+                    with rasterio.open('/vsicurl/' + url) as src:
+                        b = src.bounds
+                        win = from_bounds(max(w, b.left), max(s_, b.bottom), min(e, b.right), min(n, b.top),
+                                          transform=src.transform).round_offsets().round_lengths()
+                        a = src.read(1, window=win, out_shape=(size, size), resampling=Resampling.average).astype(float)
+                except rasterio.errors.RasterioIOError as exc:
+                    raise SourceError(f'Copernicus DEM tile unavailable for {r.cell_key}: {url}') from exc
+                stats[r.cell_key] = {'elev_mean_m': float(a.mean()), 'elev_std_m': float(a.std()),
+                                     'elev_range_m': float(np.percentile(a, 95) - np.percentile(a, 5))}
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        save_raw(dst.parent, dst.name, json.dumps({'stats': stats, 'tiles': sorted(urls)}, sort_keys=True).encode(),
+                 'Copernicus DEM GLO-90 (AWS open data COG)', 'https://copernicus-dem-90m.s3.amazonaws.com', manifest,
+                 product='Copernicus DEM GLO-90 DGED 2021/2022 release, average-resampled to ~180 m per cell',
+                 licence='Copernicus DEM licence (free, attribution: produced using Copernicus WorldDEM-90)')
+    return pd.DataFrame([{'cell_key': k, **v} for k, v in stats.items()])
